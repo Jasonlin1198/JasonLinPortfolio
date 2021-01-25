@@ -9,6 +9,9 @@ if ( WEBGL.isWebGLAvailable() === false ) {
 
 }
 
+// HTML Elements
+const container = document.getElementById( 'container' );
+
 // Scene Setup Variables
 var scene, camera, fieldOfView, aspectRatio, nearPlane, farPlane, renderer, HEIGHT, WIDTH;
 // Scene Light Variables 
@@ -19,6 +22,18 @@ var clock = new THREE.Clock();
 // Animation Variables
 var mixer;
 
+// Sound Variables
+var sound, listener;
+
+// Controllers
+var airplaneControl;
+
+// Active Scene Objects
+var cube, plane, groundPlane, billboard;
+var rings = [];
+var trees = [];
+var rocks = [];
+
 var Colors = {
     red: 0xf25346,
     white: 0xffffff,
@@ -28,11 +43,10 @@ var Colors = {
     brownDark: 0x23190f,
     blue: 0x68c3c0,
     lightBlue: 0x7ad7f0,
-    black: 0x000000
+    desertBrown: 0xe5d3b3,
+    black: 0x000000,
+    fog_color: 0xDCDBDF
 };
-
-// Active Scene Objects
-var cube, plane, groundPlane;
 
 // Enable Debugging with camera movement
 var debug = false;
@@ -47,14 +61,13 @@ window.addEventListener('load', init, false);
 function init(){
 
     createScene();
+    createAudio();
     createLights();
     createObjects();
 
     // KeyPress Listener
     document.body.addEventListener( 'keydown', onKeyDown, false );
     
-    // Begin Animation
-    animate();
 }
 
 /**
@@ -67,13 +80,13 @@ function createScene(){
 
     // Scene Object
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(Colors.lightBlue);
+    scene.background = new THREE.Color(Colors.desertBrown);
 
     // Scene Fog Settings
     if(fog){
-        const near = 40;
-        const far = 70;
-        const color = 'lightblue';
+        const near = 100;
+        const far = 200;
+        const color = Colors.desertBrown;
         scene.fog = new THREE.Fog(color, near, far);
     }
 
@@ -83,15 +96,16 @@ function createScene(){
     nearPlane = 0.1;
     farPlane = 1000;
     camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane);
-    camera.position.set( 0, 12, 20 );
-    camera.lookAt( 0, -5, 0 );
+    camera.position.set( 0, 10, 15 );
+    camera.lookAt( 0, 0, 0 );
     
     // Scene renderer
     renderer = new THREE.WebGLRenderer({ antialias: true } );
     renderer.setSize( WIDTH, HEIGHT );
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.shadowMap.enabled = true;
-    document.body.appendChild( renderer.domElement );
+    renderer.outputEncoding = THREE.GammaEncoding
+    container.appendChild( renderer.domElement );
 
     // Handle Window Resize
     window.addEventListener( 'resize', handleWindowResize, false );
@@ -111,11 +125,35 @@ function handleWindowResize() {
   }
 
 /**
+ * Handles creation of audio in the scene
+ */
+function createAudio(){
+
+    // Create Audio listener bound to camera and audio source
+    listener = new THREE.AudioListener();
+    camera.add( listener );
+
+    sound = new THREE.PositionalAudio( listener );
+    // load a sound and set it as the Audio object's buffer
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load( 'sounds/plane.ogg', function( buffer ) {
+        sound.setBuffer( buffer );
+        sound.setLoop( true );
+        sound.setVolume( 0.5 );
+        sound.setRefDistance( 20 );
+        //sound.play();
+    });
+}
+
+
+
+
+/**
  * Handles creation of all light sources
  */
 function createLights(){
     // Directional Light Object in Scene 
-    const dirIntensity = 0.65;
+    const dirIntensity = 0.72;
     directionalLight = new THREE.DirectionalLight( Colors.softwhite, dirIntensity);
     directionalLight.position.set( 20, 100, 1 );
 
@@ -133,15 +171,18 @@ function createLights(){
     directionalLight.shadow.camera.bottom = -d;
     directionalLight.shadow.camera.far = 13500;
     
-    if( !debug ) directionalLight.shadowCameraVisible = true;
+    if( debug ) {
+        var camHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+        scene.add(camHelper);
+    }
 
 
     // Ambient Light Object in Scene
-    const ambientIntensity = 0.4;
+    const ambientIntensity = 0.5;
     ambientLight = new THREE.AmbientLight( Colors.softwhite, ambientIntensity);
 
     // Point Light Objects in Scene
-    const pointIntensity = 0.6;
+    const pointIntensity = 0.1;
     pointLight1 = new THREE.PointLight( Colors.red, pointIntensity,50,2);
     pointLight1.position.set(0,20,0);
 
@@ -174,7 +215,11 @@ function createLights(){
  */
 function createObjects(){
     createCube();
-    createModels();
+    createAirplane();
+    createBillboards();
+    createRings();
+    createTrees();
+    createRocks();
     createGroundPlane();
     createNameText();
 
@@ -233,7 +278,7 @@ function createCube(){
  */
 function createGroundPlane(){
     const geometry = new THREE.PlaneGeometry(2000, 2000);
-    const material = new THREE.MeshPhongMaterial( {color: Colors.lightBlue,side:THREE.DoubleSide} );
+    const material = new THREE.MeshPhongMaterial( {color: Colors.desertBrown,side:THREE.DoubleSide} );
     groundPlane = new THREE.Mesh( geometry, material );
     groundPlane.rotateX(Math.PI/2);
 
@@ -346,7 +391,7 @@ function createExperienceText(message,offset){
             side: THREE.DoubleSide
         } );
 
-        const textSize = 0.5;
+        const textSize = 0.6;
         const shapes = font.generateShapes( message, textSize );
 
         const geometry = new THREE.ShapeBufferGeometry( shapes );
@@ -361,7 +406,7 @@ function createExperienceText(message,offset){
 
         // Rotate to match plane, translate
         text.rotation.x = -Math.PI / 2;
-        text.position.set(0,1,-15 * offset);
+        text.position.set(0,0.01,-15 * offset);
 
         scene.add( text );
 
@@ -370,9 +415,9 @@ function createExperienceText(message,offset){
 }
 
 /**
- * Loads GLTF/GLB files from Blender
+ * Loads GLTF/GLB airplane files from Blender
  */
-function createModels(){
+function createAirplane(){
     const loader = new GLTFLoader().setPath( './models/' );
     loader.load('airplane.glb', handleLoad, handleProgress);
 
@@ -396,6 +441,11 @@ function createModels(){
         scene.add(plane)
         plane.position.set(0,1,10);
 
+        airplaneControl = new THREE.PlayerControls(plane);
+
+        // Begin Animation
+        animate();
+
     }
 
     // Load progress
@@ -403,11 +453,194 @@ function createModels(){
 
 		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
 
-	}
-
+    }
 }
 
 
+/**
+ * Loads GLTF/GLB billboard files from Blender
+ */
+function createBillboards(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('billboard2.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        billboard = gltf.scene.children[0];
+
+        var pointIntensity = 0.8;
+        var billboardPointLight1 = new THREE.PointLight( Colors.white, pointIntensity,10,2);
+        billboardPointLight1.position.set(-21,10,-27);
+    
+        var billboardPointLight2 = new THREE.PointLight( Colors.white, pointIntensity,9,2);
+        billboardPointLight2.position.set(-25,10,-27);
+    
+        var billboardPointLight3 = new THREE.PointLight( Colors.white, pointIntensity,10,2);
+        billboardPointLight3.position.set(-29,10,-27);
+
+        billboardPointLight1.parent = billboard;
+        billboardPointLight2.parent = billboard;
+        billboardPointLight3.parent = billboard;
+
+        scene.add(billboard);
+        // scene.add(billboardPointLight1);
+        scene.add(billboardPointLight2);
+        scene.add(billboardPointLight3);
+
+        billboard.position.set(-38,0,-30);
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+}
+
+
+
+/**
+ * Loads GLTF/GLB ring files from Blender
+ */
+function createRings(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('ring.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        for(let i = 0; i < 5; i++){
+            var ring = gltf.scene.children[0].clone();
+            rings.push(ring);
+            scene.add(rings[i]);
+
+        }
+
+
+        rings[0].position.set(10,10,-30);
+        rings[1].position.set(-5,10,-60);
+        rings[2].position.set(5,10,-90);
+        rings[3].position.set(-5,10,-120);
+        rings[4].position.set(5,10,-150);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+}
+
+
+
+/**
+ * Loads GLTF/GLB ring files from Blender
+ */
+function createTrees(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('lowpoly_tree.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        for(let i = 0; i < 5; i++){
+            var tree = gltf.scene.children[0].clone();
+            trees.push(tree);
+            scene.add(trees[i]);
+
+        }
+
+
+        trees[0].position.set(25,3,-30);
+        trees[1].position.set(-25,3,-60);
+        trees[2].position.set(25,3,-90);
+        trees[3].position.set(-25,3,-120);
+        trees[4].position.set(25,3,-150);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+}
+
+
+/**
+ * Loads GLTF/GLB rocks files from Blender
+ */
+function createRocks(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('lowpoly_rock.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        for(let i = 0; i < 5; i++){
+            var rock = gltf.scene.children[0].clone();
+            rocks.push(rock);
+            scene.add(rocks[i]);
+
+        }
+
+
+        rocks[0].position.set(12,0.2,0);
+        rocks[1].position.set(-25,0.2,-20);
+        rocks[2].position.set(30,0.2,-23);
+        rocks[3].position.set(-37,0.2,-50);
+        rocks[4].position.set(-10,0.2,15);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+}
 
 /**
  * Handles key presses
@@ -415,40 +648,40 @@ function createModels(){
  */
 function onKeyDown(event){
     switch( event.keyCode ) {
-        // Camera Controls
-        case 83: // W - Up
-        camera.position.y -= 1;
-        break;
-        case 87: // S - Down
-        camera.position.y += 1;
-        break;
-        case 82: // R - Forward
-        camera.position.z -= 1;
-        break;
-        case 70: // F - Back
-        camera.position.z += 1;
-        break;
-        case 68: // D - Right
-        camera.position.x += 1;
-        break;
-        case 65: // A - Left
-        camera.position.x -= 1;
-        break;
+        // // Camera Controls
+        // case 83: // W - Up
+        // camera.position.y -= 1;
+        // break;
+        // case 87: // S - Down
+        // camera.position.y += 1;
+        // break;
+        // case 82: // R - Forward
+        // camera.position.z -= 1;
+        // break;
+        // case 70: // F - Back
+        // camera.position.z += 1;
+        // break;
+        // case 68: // D - Right
+        // camera.position.x += 1;
+        // break;
+        // case 65: // A - Left
+        // camera.position.x -= 1;
+        // break;
 
         //Player Controls
-        case 38: // Up
-        plane.position.z -= 1;
-        break;
-        case 40: // Down
-        plane.position.z += 1;
-        break;
-        case 37: // Left
-        plane.position.x -= 1;
-        break;
-        case 39: // Right
-        plane.position.x += 1;
-        break;
-        case 32: // Reset
+        // case 38: // Up
+        // plane.position.z -= 1;
+        // break;
+        // case 40: // Down
+        // plane.position.z += 1;
+        // break;
+        // case 37: // Left
+        // plane.position.x -= 1;
+        // break;
+        // case 39: // Right
+        // plane.position.x += 1;
+        // break;
+        case 192: // Reset
         plane.position.set(0,2,5);
         break;
     }
@@ -457,11 +690,9 @@ function onKeyDown(event){
 /**
  * Updates moving objects per frame
  */
-function update(){
+function update(deltaSeconds){
     // Reposition camera to behind player
-    camera.position.set(plane.position.x, plane.position.y + 15, plane.position.z + 10);
-    //directionalLight.shadow.camera.position.set(plane.position.x, plane.position.y + 15, plane.position.z + 15);
-
+    camera.position.set(plane.position.x, plane.position.y + 15, plane.position.z + 10) * deltaSeconds;
 
 }
 
@@ -471,14 +702,15 @@ function update(){
  * Draws the Scene per frame
  */
 function animate() {
-
-    if(!debug) update();
-
-
+    
     // Updates animations per delta units
     var deltaSeconds = clock.getDelta();
+
+    if(!debug) update();
     if ( mixer ) mixer.update( deltaSeconds );
-    
+
+    airplaneControl.update();
+
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
 };
