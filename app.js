@@ -17,7 +17,7 @@ var scene, camera, fieldOfView, aspectRatio, nearPlane, farPlane, renderer, HEIG
 // Scene Light Variables 
 var directionalLight, ambientLight, pointLight1, pointLight2, pointLight3, pointLight4, pointLight5;
 
-var clock = new THREE.Clock();
+var clock;
 
 // Animation Variables
 var mixer;
@@ -28,11 +28,16 @@ var sound, listener;
 // Controllers
 var airplaneControl;
 
+
 // Active Scene Objects
 var cube, plane, groundPlane, billboard;
 var rings = [];
 var trees = [];
 var rocks = [];
+
+// Physical World
+let physicsWorld, tmpTrans;
+let rigidBodies = [];
 
 var Colors = {
     red: 0xf25346,
@@ -52,18 +57,25 @@ var Colors = {
 var debug = false;
 var fog = true;
 
-// Begin init on Widown load
-window.addEventListener('load', init, false);
+
+//Ammojs Initialization
+Ammo().then(init)
 
 /**
  * Parent function that instantiates all objects on load
  */
 function init(){
 
+    tmpTrans = new Ammo.btTransform();
+
+    // Ammo.js Functions
+    setupPhysicsWorld();
+
+
     createScene();
-    createAudio();
-    createLights();
     createObjects();
+    createLights();
+    createAudio();
 
     // KeyPress Listener
     document.body.addEventListener( 'keydown', onKeyDown, false );
@@ -71,12 +83,34 @@ function init(){
 }
 
 /**
+ * Create ammo.js physical world settings
+ */
+function setupPhysicsWorld() {
+
+    let collisionConfiguration = new Ammo.btDefaultCollisionConfiguration(),
+        dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration),
+        overlappingPairCache = new Ammo.btDbvtBroadphase(),
+        solver = new Ammo.btSequentialImpulseConstraintSolver();
+
+    physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+    physicsWorld.setGravity(new Ammo.btVector3(0, -10, 0));
+
+}
+
+
+
+
+/**
  * Instantiates all Scene related objects
  */
 function createScene(){
-
+    // Set window dimensions
     HEIGHT = window.innerHeight;
     WIDTH = window.innerWidth;
+
+    // Create clock for timing
+    clock = new THREE.Clock();
+
 
     // Scene Object
     scene = new THREE.Scene();
@@ -84,7 +118,7 @@ function createScene(){
 
     // Scene Fog Settings
     if(fog){
-        const near = 100;
+        const near = 20;
         const far = 200;
         const color = Colors.desertBrown;
         scene.fog = new THREE.Fog(color, near, far);
@@ -97,8 +131,10 @@ function createScene(){
     farPlane = 1000;
     camera = new THREE.PerspectiveCamera(fieldOfView, aspectRatio, nearPlane, farPlane);
     camera.position.set( 0, 10, 15 );
+    camera.up.set(0, 1, 0);
     camera.lookAt( 0, 0, 0 );
-    
+    camera.updateProjectionMatrix();
+
     // Scene renderer
     renderer = new THREE.WebGLRenderer({ antialias: true } );
     renderer.setSize( WIDTH, HEIGHT );
@@ -106,6 +142,9 @@ function createScene(){
     renderer.shadowMap.enabled = true;
     renderer.outputEncoding = THREE.GammaEncoding
     container.appendChild( renderer.domElement );
+
+
+
 
     // Handle Window Resize
     window.addEventListener( 'resize', handleWindowResize, false );
@@ -214,12 +253,20 @@ function createLights(){
  * Parent Function for Creating Objects for Scene
  */
 function createObjects(){
-    createCube();
+   createTest();
+    //createCube();
     createAirplane();
     createBillboards();
     createRings();
     createTrees();
     createRocks();
+    createRamp();
+    createColumns();
+    createGitHubCat();
+    createLinkedIn();
+    createMailbox();
+    createKeys();
+    createHanger();
     createGroundPlane();
     createNameText();
 
@@ -255,7 +302,51 @@ function createObjects(){
     
     createExperienceText(message, 4);
 
+
+    message = "USE YOUR                                        KEYS\n\n\n                TO MOVE AROUND";
+
+    createExperienceText(message,-1.8);
+
+
 }
+
+function createTest(){
+    let pos = {x:-34, y: 20, z:-31.7};
+    let scale = {x: 14, y: 15, z: 1};
+    let quat = {x: 0, y: 0.14, z: 0, w: 1};
+    let mass = 1;
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshPhongMaterial( { color: Colors.red } );
+    cube = new THREE.Mesh( geometry, material );
+    cube.scale.set(scale.x, scale.y,scale.z);
+    scene.add(cube);
+
+    // //Ammojs Section
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+    transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+    let motionState = new Ammo.btDefaultMotionState( transform );
+
+    let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y *0.5, scale.z * 0.5 ) );
+    colShape.setMargin( 0.05 );
+
+    let localInertia = new Ammo.btVector3( 0, 0, 0 );
+    colShape.calculateLocalInertia( mass, localInertia );
+
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+    let body = new Ammo.btRigidBody( rbInfo );
+
+
+    physicsWorld.addRigidBody( body );
+    
+    cube.userData.physicsBody = body;
+    rigidBodies.push(cube);
+
+
+}
+
 
 /**
  * Creates Controlled Cube Player as Default on start
@@ -277,14 +368,40 @@ function createCube(){
  * Creates Ground Plane
  */
 function createGroundPlane(){
-    const geometry = new THREE.PlaneGeometry(2000, 2000);
+
+    let pos = {x:0, y:-1, z:0};
+    let scale = {x:2000, y:2, z:2000};
+    let quat = {x: 0, y: 0, z: 0, w: 1};
+    let mass = 0;
+
+    const geometry = new THREE.BoxBufferGeometry();
     const material = new THREE.MeshPhongMaterial( {color: Colors.desertBrown,side:THREE.DoubleSide} );
     groundPlane = new THREE.Mesh( geometry, material );
-    groundPlane.rotateX(Math.PI/2);
+    
+    groundPlane.scale.set(scale.x, scale.y, scale.z);
+    groundPlane.position.set(pos.x, pos.y, pos.z);
 
     groundPlane.receiveShadow = true;
 
     scene.add( groundPlane );
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+    transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+    let motionState = new Ammo.btDefaultMotionState( transform );
+
+    let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
+    colShape.setMargin( 0.05 );
+
+    let localInertia = new Ammo.btVector3( 0, 0, 0 );
+    colShape.calculateLocalInertia( mass, localInertia );
+
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+    let body = new Ammo.btRigidBody( rbInfo );
+
+
+    physicsWorld.addRigidBody( body );
 }
 
 /**
@@ -381,7 +498,7 @@ function createExperienceText(message,offset){
     const loader = new THREE.FontLoader();
     loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
 
-        const color = Colors.white;
+        const color = Colors.black;
 
         // Solid Text
         const matLite = new THREE.MeshBasicMaterial( {
@@ -439,7 +556,7 @@ function createAirplane(){
         // Get scene child from file
         plane = gltf.scene.children[0];        
         scene.add(plane)
-        plane.position.set(0,1,10);
+        plane.position.set(0,1,35);
 
         airplaneControl = new THREE.PlayerControls(plane);
 
@@ -474,6 +591,13 @@ function createBillboards(){
             }
         } );
 
+
+        let pos = {x:-34, y: 20, z:-31.7};
+        let scale = {x: 14, y: 15, z: 1};
+        let quat = {x: 0, y: 0.14, z: 0, w: 1};
+        let mass = 1;
+
+
         // Get scene child from file
         billboard = gltf.scene.children[0];
 
@@ -490,13 +614,38 @@ function createBillboards(){
         billboardPointLight1.parent = billboard;
         billboardPointLight2.parent = billboard;
         billboardPointLight3.parent = billboard;
+        billboard.position.set(pos.x,pos.y,pos.z);
 
         scene.add(billboard);
         // scene.add(billboardPointLight1);
         scene.add(billboardPointLight2);
         scene.add(billboardPointLight3);
 
-        billboard.position.set(-38,0,-30);
+        //billboard.position.set(-38,0,-30);
+
+ 
+
+
+        let transform = new Ammo.btTransform();
+        transform.setIdentity();
+        transform.setOrigin( new Ammo.btVector3( pos.x, pos.y-15, pos.z ) );
+        transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+        let motionState = new Ammo.btDefaultMotionState( transform );
+    
+        let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
+        colShape.setMargin( 0.05 );
+    
+        let localInertia = new Ammo.btVector3( 0, 0, 0 );
+        colShape.calculateLocalInertia( mass, localInertia );
+    
+        let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+        let body = new Ammo.btRigidBody( rbInfo );
+    
+    
+        physicsWorld.addRigidBody( body );
+        
+        billboard.userData.physicsBody = body;
+        rigidBodies.push(billboard);
 
     }
 
@@ -540,7 +689,7 @@ function createRings(){
         rings[1].position.set(-5,10,-60);
         rings[2].position.set(5,10,-90);
         rings[3].position.set(-5,10,-120);
-        rings[4].position.set(5,10,-150);
+        rings[4].position.set(5,10,-140);
 
 
     }
@@ -640,6 +789,266 @@ function createRocks(){
 		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
 
     }
+    
+}
+
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createRamp(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('ramp.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var ramp = gltf.scene.children[0];
+
+        ramp.position.set(0,0,10);
+
+        scene.add(ramp);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
+}
+
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createColumns(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('columns.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var columns = gltf.scene.children[0];
+
+        columns.position.set(0,0,-150);
+
+        scene.add(columns);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
+}
+
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createGitHubCat(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('githubcat.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var cat = gltf.scene.children[0];
+
+        cat.position.set(0,11.5,-150);
+
+        scene.add(cat);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
+}
+
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createLinkedIn(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('linkedin.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var cat = gltf.scene.children[0];
+
+        cat.position.set(-6.1,12.8,-150);
+
+        scene.add(cat);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
+}
+
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createMailbox(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('mailbox.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var cat = gltf.scene.children[0];
+
+        cat.position.set(6.1,8,-150);
+
+        scene.add(cat);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
+}
+
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createKeys(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('keys.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var keys = gltf.scene.children[0];
+
+        keys.position.set(1.1,1.2,27);
+
+        scene.add(keys);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
+}
+
+/**
+ * Loads GLTF/GLB ramp files from Blender
+ */
+function createHanger(){
+    const loader = new GLTFLoader().setPath( './models/' );
+    loader.load('hanger.glb', handleLoad, handleProgress);
+
+    // Load completion
+    function handleLoad(gltf){
+
+        // Enable Shadows for loaded objects children
+        gltf.scene.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                
+                child.castShadow = true;
+            }
+        } );
+
+        // Get scene child from file
+        var keys = gltf.scene.children[0];
+
+        keys.position.set(31,3.5,-10);
+
+        scene.add(keys);
+
+
+    }
+
+    // Load progress
+	function handleProgress( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+    }
+    
 }
 
 /**
@@ -648,54 +1057,48 @@ function createRocks(){
  */
 function onKeyDown(event){
     switch( event.keyCode ) {
-        // // Camera Controls
-        // case 83: // W - Up
-        // camera.position.y -= 1;
-        // break;
-        // case 87: // S - Down
-        // camera.position.y += 1;
-        // break;
-        // case 82: // R - Forward
-        // camera.position.z -= 1;
-        // break;
-        // case 70: // F - Back
-        // camera.position.z += 1;
-        // break;
-        // case 68: // D - Right
-        // camera.position.x += 1;
-        // break;
-        // case 65: // A - Left
-        // camera.position.x -= 1;
-        // break;
-
-        //Player Controls
-        // case 38: // Up
-        // plane.position.z -= 1;
-        // break;
-        // case 40: // Down
-        // plane.position.z += 1;
-        // break;
-        // case 37: // Left
-        // plane.position.x -= 1;
-        // break;
-        // case 39: // Right
-        // plane.position.x += 1;
-        // break;
         case 192: // Reset
         plane.position.set(0,2,5);
         break;
     }
 }
 
-/**
- * Updates moving objects per frame
- */
-function update(deltaSeconds){
-    // Reposition camera to behind player
-    camera.position.set(plane.position.x, plane.position.y + 15, plane.position.z + 10) * deltaSeconds;
+
+
+function updatePhysics(deltaTime) {
+
+    // Step world
+    physicsWorld.stepSimulation(deltaTime, 10);
+
+    // Update rigid bodies
+    for (let i = 0; i < rigidBodies.length; i++) {
+        let objThree = rigidBodies[i];
+        let objAmmo = objThree.userData.physicsBody;
+        let ms = objAmmo.getMotionState();
+        if (ms) {
+
+            ms.getWorldTransform(tmpTrans);
+            let p = tmpTrans.getOrigin();
+            let q = tmpTrans.getRotation();
+            objThree.position.set(p.x(), p.y(), p.z());
+            objThree.quaternion.set(q.x(), q.y(), q.z(), q.w());
+
+        }
+    }
 
 }
 
+
+
+
+/**
+ * Updates moving objects per frame
+ */
+function update(deltaTime){
+    // Reposition camera to behind player
+    camera.position.set(plane.position.x, plane.position.y + 15, plane.position.z + 10) * deltaTime;
+
+}
 
 
 /**
@@ -704,13 +1107,18 @@ function update(deltaSeconds){
 function animate() {
     
     // Updates animations per delta units
-    var deltaSeconds = clock.getDelta();
+    var deltaTime = clock.getDelta();
 
     if(!debug) update();
-    if ( mixer ) mixer.update( deltaSeconds );
+    if ( mixer ) mixer.update( deltaTime );
 
     airplaneControl.update();
+    
+    updatePhysics( deltaTime );
+    //console.log(billboard.position);
 
     renderer.render( scene, camera );
     requestAnimationFrame( animate );
 };
+
+
