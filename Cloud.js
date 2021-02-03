@@ -1,4 +1,4 @@
-import { Colors, scene } from "./app";
+import { Colors, scene } from "./index";
 
 class Cloud {
     constructor() {
