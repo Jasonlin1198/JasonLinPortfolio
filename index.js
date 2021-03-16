@@ -104,6 +104,8 @@ function init() {
 
   // // Touch controls
   if (mobileVersion) {
+    window.alert("changed3");
+
     // Flip Airplane to correct orientation intitially
     // while (plane.rotation.z != 0) {
     //   if (plane.rotation.z < 0) {
@@ -113,7 +115,6 @@ function init() {
     //     plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, 0, 0.1);
     //   }
     // }
-    window.alert("changed2");
     document.body.addEventListener("touchstart", process_touchstart, false);
     document.body.addEventListener("touchmove", process_touchmove, false);
     document.body.addEventListener("touchcancel", process_touchcancel, false);
@@ -154,6 +155,14 @@ function process_touchmove(ev) {
   // Move back
   if (curr_touch_y - last_touch_y > 0) {
     plane.translateX(-0.2);
+  }
+  // Rotate right
+  if (curr_touch_x - last_touch_x < 0) {
+    plane.rotation.y += 0.04;
+  }
+  // Rotate left
+  if (curr_touch_x - last_touch_x > 0) {
+    plane.rotation.y -= 0.04;
   }
   // requestAnimationFrame(animate);
 
@@ -413,13 +422,15 @@ function update(deltaTime) {
     plane.position.z + 10
   ) * deltaTime;
 
-  cloud.forEach((c) => {
-    c.position.x += 5 * deltaTime;
-    c.position.z += Math.random() * 1.5 * deltaTime;
-    if (c.position.x > 100) {
-      scene.remove(c);
-    }
-  });
+  if (!mobileVersion) {
+    cloud.forEach((c) => {
+      c.position.x += 5 * deltaTime;
+      c.position.z += Math.random() * 1.5 * deltaTime;
+      if (c.position.x > 100) {
+        scene.remove(c);
+      }
+    });
+  }
 }
 
 /**
@@ -434,8 +445,6 @@ function animate() {
 
   if (!mobileVersion) {
     airplaneControl.update();
-  } else {
-    // Use mobile touch controls
   }
 
   updatePhysics(deltaTime);

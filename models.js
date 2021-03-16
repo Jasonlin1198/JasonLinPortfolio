@@ -6,7 +6,7 @@ import {
   rigidBodies,
   Colors,
   debug,
-  mobileVersion
+  mobileVersion,
 } from "./index.js";
 import { Vector3, Vector4 } from "./build/three.module.js";
 
@@ -49,10 +49,11 @@ Handled procedural generation of NetBox data and deployed applications with Dock
   "USE YOUR                                        KEYS\n\n\n                TO MOVE AROUND",
 ];
 
-setInterval(function () {
-  createCloud();
-}, 1200);
-
+if (!mobileVersion) {
+  setInterval(function () {
+    createCloud();
+  }, 1200);
+}
 /**
  * Parent Function for Creating Objects for Scene
  */
@@ -331,7 +332,6 @@ function createAirplane() {
     gltf.scene.traverse(function (child) {
       if (child.isMesh) {
         child.castShadow = true;
-
       }
     });
 
