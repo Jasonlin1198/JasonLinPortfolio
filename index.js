@@ -109,15 +109,6 @@ function init() {
   }
 }
 
-// Create touchstart handler
-document.body.addEventListener('touchstart', function(ev) {
-  // Iterate through the touch points that were activated
-  // for this element and process each event 'target'
-  for (var i=0; i < ev.targetTouches.length; i++) {
-    process_target(ev.targetTouches[i].target);
-  }
-}, false);
-
 // touchstart handler
 function process_touchstart(ev) {
   // Use the event's data to call out to the appropriate gesture handlers
@@ -132,6 +123,10 @@ function process_touchstart(ev) {
 function process_touchmove(ev) {
   // Set call preventDefault()
   ev.preventDefault();
+  
+  var x = ev.targetTouches[0].clientX;
+  var y = ev.targetTouches[0].clientY;
+  window.alert("x: " + x + "y: " + y);
 }
 
 function handle_one_touch(ev){
