@@ -105,20 +105,20 @@ function init() {
   // // Touch controls
   if (mobileVersion) {
     // Flip Airplane to correct orientation intitially
-    if (plane.rotation.z < 0) {
-      plane.rotation.z = THREE.MathUtils.lerp(
-        plane.rotation.z,
-        0,
-        0.1
-      );
-    }
-    if (plane.rotation.z > 0) {
-      plane.rotation.z = THREE.MathUtils.lerp(
-        plane.rotation.z,
-        0,
-        0.1
-      );
-    }
+    // if (plane.rotation.z < 0) {
+    //   plane.rotation.z = THREE.MathUtils.lerp(
+    //     plane.rotation.z,
+    //     0,
+    //     0.1
+    //   );
+    // }
+    // if (plane.rotation.z > 0) {
+    //   plane.rotation.z = THREE.MathUtils.lerp(
+    //     plane.rotation.z,
+    //     0,
+    //     0.1
+    //   );
+    // }
     window.alert("changed");
     document.body.addEventListener("touchstart", process_touchstart, false);
     document.body.addEventListener("touchmove", process_touchmove, false);
