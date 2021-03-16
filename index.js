@@ -152,12 +152,12 @@ function process_touchmove(ev) {
   var curr_touch_x = ev.targetTouches[0].clientX;
   var curr_touch_y = ev.targetTouches[0].clientY;
 
-  if(curr_touch_y - last_touch_y > 0){
-    plane.translateX(0.2);
-  }
-  if(curr_touch_y - last_touch_y < 0){
-    plane.translateX(-0.2);
-  }
+  // if(curr_touch_y - last_touch_y > 0){
+  //   plane.translateX(0.2);
+  // }
+  // if(curr_touch_y - last_touch_y < 0){
+  //   plane.translateX(-0.2);
+  // }
   //window.alert("x: " + x + "y: " + y);
 }
 
@@ -191,8 +191,8 @@ function handle_one_touch(ev) {
   ev.preventDefault();
 
   //window.alert("touched with 1 finger");
-  last_touch_x = ev.targetTouches[0].clientX;
-  last_touch_y = ev.targetTouches[0].clientY;
+  // last_touch_x = ev.targetTouches[0].clientX;
+  // last_touch_y = ev.targetTouches[0].clientY;
 }
 function handle_two_touches(ev) {
   window.alert("touched with 2 fingers");
