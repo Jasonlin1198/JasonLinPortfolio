@@ -130,7 +130,10 @@ function process_touchmove(ev) {
 }
 
 function handle_one_touch(ev){
-  window.alert("touched");
+  //window.alert("touched");
+}
+function handle_two_touches(ev){
+  window.alert("touched with 2 fingers");
 }
 
 /**
