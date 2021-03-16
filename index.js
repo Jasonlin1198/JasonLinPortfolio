@@ -104,7 +104,7 @@ function init() {
 
   // // Touch controls
   if (mobileVersion) {
-    window.alert("changed5");
+    window.alert("changed6");
 
     // Flip Airplane to correct orientation intitially
     // while (plane.rotation.z != 0) {
@@ -242,18 +242,18 @@ function createScene() {
   scene.background = new THREE.Color(Colors.white);
 
   // Scene Fog Settings
-  if (fog) {
-    const near = 20;
-    const far = 500;
-    const color = Colors.white;
-    scene.fog = new THREE.Fog(color, near, far);
-  }
+  // if (fog) {
+  //   const near = 20;
+  //   const far = 500;
+  //   const color = Colors.white;
+  //   scene.fog = new THREE.Fog(color, near, far);
+  // }
 
   // Scene renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(WIDTH, HEIGHT);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.shadowMap.enabled = true;
+  //renderer.shadowMap.enabled = true;
   renderer.outputEncoding = THREE.GammaEncoding;
   container.appendChild(renderer.domElement);
 
@@ -266,7 +266,7 @@ function createCamera() {
   aspectRatio = WIDTH / HEIGHT;
   fieldOfView = 75;
   nearPlane = 0.1;
-  farPlane = 1000;
+  farPlane = 100;
   camera = new THREE.PerspectiveCamera(
     fieldOfView,
     aspectRatio,
