@@ -169,37 +169,9 @@ function process_touchmove(ev) {
   //window.alert("curr_touch_x: " + curr_touch_x + "curr_touch_y: " + curr_touch_y);
 }
 
-// if (keyState[81]) {
-//   // 'q' - tilt up
-//   this.player.rotation.z -= this.tiltSpeed;
-// } else {
-//   if (this.player.rotation.z < 0) {
-//     this.player.rotation.z = THREE.MathUtils.lerp(
-//       this.player.rotation.z,
-//       0,
-//       0.1
-//     );
-//   }
-// }
-
-// if (keyState[69]) {
-//   // 'e' - tilt down
-//   this.player.rotation.z += this.tiltSpeed;
-// } else {
-//   if (this.player.rotation.z > 0) {
-//     this.player.rotation.z = THREE.MathUtils.lerp(
-//       this.player.rotation.z,
-//       0,
-//       0.1
-//     );
-//   }
-// }
-
 function handle_one_touch(ev) {
-  //window.alert("touched with 1 finger");
   last_touch_x = ev.touches[0].clientX;
   last_touch_y = ev.touches[0].clientY;
-  //window.alert("x: " + last_touch_x + "y: " + last_touch_y);
 }
 function handle_two_touches(ev) {
   window.alert("touched with 2 fingers");
@@ -242,18 +214,18 @@ function createScene() {
   scene.background = new THREE.Color(Colors.white);
 
   // Scene Fog Settings
-  // if (fog) {
-  //   const near = 20;
-  //   const far = 500;
-  //   const color = Colors.white;
-  //   scene.fog = new THREE.Fog(color, near, far);
-  // }
+  if (fog) {
+    const near = 20;
+    const far = 500;
+    const color = Colors.white;
+    scene.fog = new THREE.Fog(color, near, far);
+  }
 
   // Scene renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(WIDTH, HEIGHT);
   renderer.setPixelRatio(window.devicePixelRatio);
-  //renderer.shadowMap.enabled = true;
+  renderer.shadowMap.enabled = true;
   renderer.outputEncoding = THREE.GammaEncoding;
   container.appendChild(renderer.domElement);
 
