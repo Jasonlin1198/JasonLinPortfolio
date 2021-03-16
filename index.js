@@ -188,7 +188,7 @@ function process_touchmove(ev) {
 // }
 
 function handle_one_touch(ev) {
-  ev.preventDefault();
+  //ev.preventDefault();
 
   //window.alert("touched with 1 finger");
   // last_touch_x = ev.targetTouches[0].clientX;
