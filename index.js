@@ -102,23 +102,23 @@ function init() {
   // KeyPress Listener
   document.body.addEventListener("keydown", onKeyDown, false);
 
-  // Touch controls
-  if (mobileVersion) {
-    // Flip Airplane to correct orientation intitially
-    if (this.player.rotation.z < 0) {
-      this.player.rotation.z = THREE.MathUtils.lerp(
-        this.player.rotation.z,
-        0,
-        0.1
-      );
-    }
-    if (this.player.rotation.z > 0) {
-      this.player.rotation.z = THREE.MathUtils.lerp(
-        this.player.rotation.z,
-        0,
-        0.1
-      );
-    }
+  // // Touch controls
+  // if (mobileVersion) {
+  //   // Flip Airplane to correct orientation intitially
+  //   if (this.player.rotation.z < 0) {
+  //     this.player.rotation.z = THREE.MathUtils.lerp(
+  //       this.player.rotation.z,
+  //       0,
+  //       0.1
+  //     );
+  //   }
+  //   if (this.player.rotation.z > 0) {
+  //     this.player.rotation.z = THREE.MathUtils.lerp(
+  //       this.player.rotation.z,
+  //       0,
+  //       0.1
+  //     );
+  //   }
     document.body.addEventListener("touchstart", process_touchstart, false);
     document.body.addEventListener("touchmove", process_touchmove, false);
     document.body.addEventListener("touchcancel", process_touchcancel, false);
@@ -188,6 +188,8 @@ function process_touchmove(ev) {
 // }
 
 function handle_one_touch(ev) {
+  ev.preventDefault();
+
   //window.alert("touched with 1 finger");
   last_touch_x = ev.targetTouches[0].clientX;
   last_touch_y = ev.targetTouches[0].clientY;
