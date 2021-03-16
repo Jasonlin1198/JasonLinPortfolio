@@ -158,7 +158,7 @@ function process_touchmove(ev) {
   // if(curr_touch_y - last_touch_y < 0){
   //   plane.translateX(-0.2);
   // }
-  //window.alert("x: " + x + "y: " + y);
+  window.alert("curr_touch_x: " + curr_touch_x + "curr_touch_y: " + curr_touch_y);
 }
 
 // if (keyState[81]) {
@@ -189,8 +189,8 @@ function process_touchmove(ev) {
 
 function handle_one_touch(ev) {
   //window.alert("touched with 1 finger");
-  last_touch_x = ev.targetTouches[0].clientX;
-  last_touch_y = ev.targetTouches[0].clientY;
+  last_touch_x = ev.touches[0].clientX;
+  last_touch_y = ev.touches[0].clientY;
     window.alert("x: " + last_touch_x + "y: " + last_touch_y);
 
 }
