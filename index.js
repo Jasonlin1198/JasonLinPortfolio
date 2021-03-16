@@ -104,7 +104,7 @@ function init() {
 
   // // Touch controls
   if (mobileVersion) {
-    window.alert("changed6");
+    window.alert("changed7");
 
     // Flip Airplane to correct orientation intitially
     // while (plane.rotation.z != 0) {
@@ -238,7 +238,7 @@ function createCamera() {
   aspectRatio = WIDTH / HEIGHT;
   fieldOfView = 75;
   nearPlane = 0.1;
-  farPlane = 100;
+  farPlane = 1000;
   camera = new THREE.PerspectiveCamera(
     fieldOfView,
     aspectRatio,
@@ -416,7 +416,7 @@ function animate() {
   if (mixer) mixer.update(deltaTime);
 
   if (!mobileVersion) {
-    //airplaneControl.update();
+    airplaneControl.update();
   }
 
   updatePhysics(deltaTime);

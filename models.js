@@ -324,9 +324,9 @@ function createAirplane() {
   // Load completion
   function handleLoad(gltf) {
     // Load Propeller Spin Animation with Mixer
-    // mixer = new THREE.AnimationMixer(gltf.scene);
-    // var action = mixer.clipAction(gltf.animations[0]);
-    // action.play();
+    mixer = new THREE.AnimationMixer(gltf.scene);
+    var action = mixer.clipAction(gltf.animations[1]);
+    action.play();
 
     // Enable Shadows for loaded objects children
     gltf.scene.traverse(function (child) {
