@@ -188,11 +188,11 @@ function process_touchmove(ev) {
 // }
 
 function handle_one_touch(ev) {
-  //ev.preventDefault();
-
   //window.alert("touched with 1 finger");
-  // last_touch_x = ev.targetTouches[0].clientX;
-  // last_touch_y = ev.targetTouches[0].clientY;
+  last_touch_x = ev.targetTouches[0].clientX;
+  last_touch_y = ev.targetTouches[0].clientY;
+    window.alert("x: " + last_touch_x + "y: " + last_touch_y);
+
 }
 function handle_two_touches(ev) {
   window.alert("touched with 2 fingers");
