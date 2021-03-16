@@ -67,75 +67,75 @@ function createObjects() {
   }
 
   createGroundPlane();
-  createBillboards();
-  createRings();
-  createTrees();
-  createRocks();
-  createName();
-  createImages();
-  loadGLTFObject(
-    "column1.glb",
-    new Vector3(-6.1, 10, -150),
-    new Vector3(1, 1, 1),
-    new Vector4(0, -1, 0, 1),
-    new Vector3(3, 5.7, 3)
-  );
-  loadGLTFObject(
-    "column2.glb",
-    new Vector3(0, 8, -150),
-    new Vector3(1, 1, 1),
-    new Vector4(0, -1, 0, 1),
-    new Vector3(3, 4.7, 3)
-  );
-  loadGLTFObject(
-    "column3.glb",
-    new Vector3(6.1, 6, -150),
-    new Vector3(1, 1, 1),
-    new Vector4(0, -1, 0, 1),
-    new Vector3(3, 3.5, 3)
-  );
-  loadGLTFObject(
-    "linkedin.glb",
-    new Vector3(-6.1, 25, -150),
-    new Vector3(1, 1, 1),
-    new Vector4(1, 0, 0, 1),
-    new Vector3(1, 3, 1.4)
-  );
-  loadGLTFObject(
-    "githubcat.glb",
-    new Vector3(0, 22, -150),
-    new Vector3(1, 1, 1),
-    new Vector4(0, 5, 0, 1),
-    new Vector3(2, 2.2, 2)
-  );
-  loadGLTFObject(
-    "mailbox.glb",
-    new Vector3(6.1, 19, -150),
-    new Vector3(1, 1, 1),
-    new Vector4(0, -1.5, 0, 1),
-    new Vector3(1, 1, 1)
-  );
-  loadGLTFObject(
-    "ramp.glb",
-    new Vector3(0, 5, 10),
-    new Vector3(1, 1, 1),
-    new Vector4(0, 0, 0, 1),
-    new Vector3(1.5, 1.5, 1.5)
-  );
-  loadGLTFObject(
-    "hanger.glb",
-    new Vector3(38, 10, 0),
-    new Vector3(1, 1, 1),
-    new Vector4(0, 0.1, 0, 1),
-    new Vector3(7.5, 7.5, 7.5)
-  );
-  loadGLTFObject(
-    "keys.glb",
-    new Vector3(1.1, 1.2, 27),
-    new Vector3(1, 1, 1),
-    new Vector4(0, 1000, 0, 1),
-    new Vector3(1, 1, 1)
-  );
+  // createBillboards();
+  // createRings();
+  // createTrees();
+  // createRocks();
+  // createName();
+  // createImages();
+  // loadGLTFObject(
+  //   "column1.glb",
+  //   new Vector3(-6.1, 10, -150),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, -1, 0, 1),
+  //   new Vector3(3, 5.7, 3)
+  // );
+  // loadGLTFObject(
+  //   "column2.glb",
+  //   new Vector3(0, 8, -150),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, -1, 0, 1),
+  //   new Vector3(3, 4.7, 3)
+  // );
+  // loadGLTFObject(
+  //   "column3.glb",
+  //   new Vector3(6.1, 6, -150),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, -1, 0, 1),
+  //   new Vector3(3, 3.5, 3)
+  // );
+  // loadGLTFObject(
+  //   "linkedin.glb",
+  //   new Vector3(-6.1, 25, -150),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(1, 0, 0, 1),
+  //   new Vector3(1, 3, 1.4)
+  // );
+  // loadGLTFObject(
+  //   "githubcat.glb",
+  //   new Vector3(0, 22, -150),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, 5, 0, 1),
+  //   new Vector3(2, 2.2, 2)
+  // );
+  // loadGLTFObject(
+  //   "mailbox.glb",
+  //   new Vector3(6.1, 19, -150),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, -1.5, 0, 1),
+  //   new Vector3(1, 1, 1)
+  // );
+  // loadGLTFObject(
+  //   "ramp.glb",
+  //   new Vector3(0, 5, 10),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, 0, 0, 1),
+  //   new Vector3(1.5, 1.5, 1.5)
+  // );
+  // loadGLTFObject(
+  //   "hanger.glb",
+  //   new Vector3(38, 10, 0),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, 0.1, 0, 1),
+  //   new Vector3(7.5, 7.5, 7.5)
+  // );
+  // loadGLTFObject(
+  //   "keys.glb",
+  //   new Vector3(1.1, 1.2, 27),
+  //   new Vector3(1, 1, 1),
+  //   new Vector4(0, 1000, 0, 1),
+  //   new Vector3(1, 1, 1)
+  // );
 
   createExperienceText(messages[0], 1);
 
