@@ -14,6 +14,8 @@ import {
 } from "./models.js";
 
 var mobileVersion = false;
+var last_touch_x = 0;
+var last_touch_y = 0;
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -102,6 +104,21 @@ function init() {
 
   // Touch controls
   if (mobileVersion) {
+    // Flip Airplane to correct orientation intitially
+    if (this.player.rotation.z < 0) {
+      this.player.rotation.z = THREE.MathUtils.lerp(
+        this.player.rotation.z,
+        0,
+        0.1
+      );
+    }
+    if (this.player.rotation.z > 0) {
+      this.player.rotation.z = THREE.MathUtils.lerp(
+        this.player.rotation.z,
+        0,
+        0.1
+      );
+    }
     document.body.addEventListener("touchstart", process_touchstart, false);
     document.body.addEventListener("touchmove", process_touchmove, false);
     document.body.addEventListener("touchcancel", process_touchcancel, false);
@@ -113,27 +130,73 @@ function init() {
 function process_touchstart(ev) {
   // Use the event's data to call out to the appropriate gesture handlers
   switch (ev.touches.length) {
-    case 1: handle_one_touch(ev); break;
-    case 2: handle_two_touches(ev); break;
-    case 3: handle_three_touches(ev); break;
-    default: gesture_not_supported(ev); break;
+    case 1:
+      handle_one_touch(ev);
+      break;
+    case 2:
+      handle_two_touches(ev);
+      break;
+    case 3:
+      handle_three_touches(ev);
+      break;
+    default:
+      gesture_not_supported(ev);
+      break;
   }
 }
 // touchmove handler
 function process_touchmove(ev) {
   // Set call preventDefault()
   ev.preventDefault();
-  
-  var x = ev.targetTouches[0].clientX;
-  var y = ev.targetTouches[0].clientY;
-  window.alert("x: " + x + "y: " + y);
+
+  var curr_touch_x = ev.targetTouches[0].clientX;
+  var curr_touch_y = ev.targetTouches[0].clientY;
+
+  if(curr_touch_y - last_touch_y > 0){
+    plane.translateX(0.2);
+  }
+  if(curr_touch_y - last_touch_y < 0){
+    plane.translateX(-0.2);
+  }
+  //window.alert("x: " + x + "y: " + y);
 }
 
-function handle_one_touch(ev){
-  //window.alert("touched");
+// if (keyState[81]) {
+//   // 'q' - tilt up
+//   this.player.rotation.z -= this.tiltSpeed;
+// } else {
+//   if (this.player.rotation.z < 0) {
+//     this.player.rotation.z = THREE.MathUtils.lerp(
+//       this.player.rotation.z,
+//       0,
+//       0.1
+//     );
+//   }
+// }
+
+// if (keyState[69]) {
+//   // 'e' - tilt down
+//   this.player.rotation.z += this.tiltSpeed;
+// } else {
+//   if (this.player.rotation.z > 0) {
+//     this.player.rotation.z = THREE.MathUtils.lerp(
+//       this.player.rotation.z,
+//       0,
+//       0.1
+//     );
+//   }
+// }
+
+function handle_one_touch(ev) {
+  //window.alert("touched with 1 finger");
+  last_touch_x = ev.targetTouches[0].clientX;
+  last_touch_y = ev.targetTouches[0].clientY;
 }
-function handle_two_touches(ev){
+function handle_two_touches(ev) {
   window.alert("touched with 2 fingers");
+}
+function handle_two_touches(ev) {
+  window.alert("touched with 3 fingers");
 }
 
 /**
