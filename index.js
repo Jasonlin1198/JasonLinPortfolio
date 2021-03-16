@@ -189,9 +189,9 @@ function process_touchmove(ev) {
 
 function handle_one_touch(ev) {
   //window.alert("touched with 1 finger");
-  last_touch_x = ev.touches[0].clientX;
-  last_touch_y = ev.touches[0].clientY;
-    window.alert("x: " + last_touch_x + "y: " + last_touch_y);
+  // last_touch_x = ev.touches[0].clientX;
+  // last_touch_y = ev.touches[0].clientY;
+  //   window.alert("x: " + last_touch_x + "y: " + last_touch_y);
 
 }
 function handle_two_touches(ev) {
