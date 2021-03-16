@@ -104,7 +104,7 @@ function init() {
 
   // // Touch controls
   if (mobileVersion) {
-    window.alert("changed3");
+    window.alert("changed4");
 
     // Flip Airplane to correct orientation intitially
     // while (plane.rotation.z != 0) {
@@ -115,10 +115,10 @@ function init() {
     //     plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, 0, 0.1);
     //   }
     // }
-    document.body.addEventListener("touchstart", process_touchstart, false);
-    document.body.addEventListener("touchmove", process_touchmove, false);
-    document.body.addEventListener("touchcancel", process_touchcancel, false);
-    document.body.addEventListener("touchend", process_touchend, false);
+    document.addEventListener("touchstart", process_touchstart, false);
+    document.addEventListener("touchmove", process_touchmove, false);
+    document.addEventListener("touchcancel", process_touchcancel, false);
+    document.addEventListener("touchend", process_touchend, false);
   }
 }
 
