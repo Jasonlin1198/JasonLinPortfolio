@@ -104,7 +104,7 @@ function init() {
 
   // // Touch controls
   if (mobileVersion) {
-    window.alert("changed4");
+    window.alert("changed5");
 
     // Flip Airplane to correct orientation intitially
     // while (plane.rotation.z != 0) {
@@ -444,7 +444,7 @@ function animate() {
   if (mixer) mixer.update(deltaTime);
 
   if (!mobileVersion) {
-    airplaneControl.update();
+    //airplaneControl.update();
   }
 
   updatePhysics(deltaTime);
