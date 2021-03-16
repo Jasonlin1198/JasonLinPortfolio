@@ -6,6 +6,7 @@ import {
   rigidBodies,
   Colors,
   debug,
+  mobileVersion
 } from "./index.js";
 import { Vector3, Vector4 } from "./build/three.module.js";
 

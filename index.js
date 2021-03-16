@@ -10,16 +10,20 @@ import {
   trees,
   rocks,
   cloud,
-  airplaneControl
+  airplaneControl,
 } from "./models.js";
 
-if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+var mobileVersion = false;
+
+if (
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  )
+) {
   // true for mobile device
-  window.alert("mobile device");
-}else{
-  // false for not mobile device
-  window.alert("not mobile device");
+  mobileVersion = true;
 }
+
 // Enable Debugging with camera movement
 var debug = false;
 var fog = true;
@@ -74,10 +78,8 @@ var Colors = {
   desertBrown: 0xe5d3b3,
   black: 0x000000,
   fog_color: 0xdcdbdf,
-  orange: 0xfe8f42
+  orange: 0xfe8f42,
 };
-
-
 
 //Ammojs Initialization
 Ammo().then(init);
@@ -97,6 +99,43 @@ function init() {
 
   // KeyPress Listener
   document.body.addEventListener("keydown", onKeyDown, false);
+
+  // Touch controls
+  if (mobileVersion) {
+    document.body.addEventListener("touchstart", process_touchstart, false);
+    document.body.addEventListener("touchmove", process_touchmove, false);
+    document.body.addEventListener("touchcancel", process_touchcancel, false);
+    document.body.addEventListener("touchend", process_touchend, false);
+  }
+}
+
+// Create touchstart handler
+document.body.addEventListener('touchstart', function(ev) {
+  // Iterate through the touch points that were activated
+  // for this element and process each event 'target'
+  for (var i=0; i < ev.targetTouches.length; i++) {
+    process_target(ev.targetTouches[i].target);
+  }
+}, false);
+
+// touchstart handler
+function process_touchstart(ev) {
+  // Use the event's data to call out to the appropriate gesture handlers
+  switch (ev.touches.length) {
+    case 1: handle_one_touch(ev); break;
+    case 2: handle_two_touches(ev); break;
+    case 3: handle_three_touches(ev); break;
+    default: gesture_not_supported(ev); break;
+  }
+}
+// touchmove handler
+function process_touchmove(ev) {
+  // Set call preventDefault()
+  ev.preventDefault();
+}
+
+function handle_one_touch(ev){
+  window.alert("touched");
 }
 
 /**
@@ -152,22 +191,22 @@ function createScene() {
   window.addEventListener("resize", handleWindowResize, false);
 }
 
-function createCamera(){
-    // Create the camera
-    aspectRatio = WIDTH / HEIGHT;
-    fieldOfView = 75;
-    nearPlane = 0.1;
-    farPlane = 1000;
-    camera = new THREE.PerspectiveCamera(
-      fieldOfView,
-      aspectRatio,
-      nearPlane,
-      farPlane
-    );
-    camera.position.set(0, 10, 15);
-    camera.up.set(0, 1, 0);
-    camera.lookAt(0, 0, 0);
-    camera.updateProjectionMatrix();
+function createCamera() {
+  // Create the camera
+  aspectRatio = WIDTH / HEIGHT;
+  fieldOfView = 75;
+  nearPlane = 0.1;
+  farPlane = 1000;
+  camera = new THREE.PerspectiveCamera(
+    fieldOfView,
+    aspectRatio,
+    nearPlane,
+    farPlane
+  );
+  camera.position.set(0, 10, 15);
+  camera.up.set(0, 1, 0);
+  camera.lookAt(0, 0, 0);
+  camera.updateProjectionMatrix();
 }
 
 /**
@@ -332,17 +371,29 @@ function animate() {
   update(deltaTime);
   if (mixer) mixer.update(deltaTime);
 
-  airplaneControl.update();
+  if (!mobileVersion) {
+    airplaneControl.update();
+  } else {
+    // Use mobile touch controls
+  }
 
   updatePhysics(deltaTime);
-    // let resultantImpulse = new Ammo.btVector3( 1, 0, 0 )
-    // resultantImpulse.op_mul(20);
+  // let resultantImpulse = new Ammo.btVector3( 1, 0, 0 )
+  // resultantImpulse.op_mul(20);
 
-    // let physicsBody = plane.userData.physicsBody;
-    // physicsBody.setLinearVelocity( resultantImpulse );
+  // let physicsBody = plane.userData.physicsBody;
+  // physicsBody.setLinearVelocity( resultantImpulse );
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
 
-export { animate, scene , physicsWorld, rigidBodies, Colors, debug};
+export {
+  animate,
+  scene,
+  physicsWorld,
+  rigidBodies,
+  Colors,
+  debug,
+  mobileVersion,
+};
