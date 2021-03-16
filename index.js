@@ -195,7 +195,7 @@ function handle_one_touch(ev) {
 function handle_two_touches(ev) {
   window.alert("touched with 2 fingers");
 }
-function handle_two_touches(ev) {
+function handle_three_touches(ev) {
   window.alert("touched with 3 fingers");
 }
 
