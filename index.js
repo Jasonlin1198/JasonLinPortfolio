@@ -121,15 +121,15 @@ function init() {
     }
     window.alert("changed");
     document.body.addEventListener("touchstart", process_touchstart, false);
-
+    document.body.addEventListener("touchmove", process_touchmove, false);
+    document.body.addEventListener("touchcancel", process_touchcancel, false);
+    document.body.addEventListener("touchend", process_touchend, false);
   }
 }
 
 // touchstart handler
 function process_touchstart(ev) {
-  document.body.addEventListener("touchmove", process_touchmove, false);
-  document.body.addEventListener("touchcancel", process_touchcancel, false);
-  document.body.addEventListener("touchend", process_touchend, false);
+
   // Use the event's data to call out to the appropriate gesture handlers
   switch (ev.touches.length) {
     case 1:
@@ -162,7 +162,7 @@ function process_touchmove(ev) {
   if(curr_touch_y - last_touch_y > 0){
     plane.translateX(-0.2);
   }
-  requestAnimationFrame(animate);
+ // requestAnimationFrame(animate);
 
   //window.alert("curr_touch_x: " + curr_touch_x + "curr_touch_y: " + curr_touch_y);
 }
