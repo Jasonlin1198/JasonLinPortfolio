@@ -103,7 +103,7 @@ function init() {
   document.body.addEventListener("keydown", onKeyDown, false);
 
   // // Touch controls
-  // if (mobileVersion) {
+  if (mobileVersion) {
   //   // Flip Airplane to correct orientation intitially
   //   if (this.player.rotation.z < 0) {
   //     this.player.rotation.z = THREE.MathUtils.lerp(
