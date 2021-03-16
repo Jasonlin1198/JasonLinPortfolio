@@ -13,6 +13,13 @@ import {
   airplaneControl
 } from "./models.js";
 
+if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+  // true for mobile device
+  window.alert("mobile device");
+}else{
+  // false for not mobile device
+  window.alert("not mobile device");
+}
 // Enable Debugging with camera movement
 var debug = false;
 var fog = true;
