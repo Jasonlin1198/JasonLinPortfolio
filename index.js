@@ -105,21 +105,15 @@ function init() {
   // // Touch controls
   if (mobileVersion) {
     // Flip Airplane to correct orientation intitially
-    // if (plane.rotation.z < 0) {
-    //   plane.rotation.z = THREE.MathUtils.lerp(
-    //     plane.rotation.z,
-    //     0,
-    //     0.1
-    //   );
-    // }
-    // if (plane.rotation.z > 0) {
-    //   plane.rotation.z = THREE.MathUtils.lerp(
-    //     plane.rotation.z,
-    //     0,
-    //     0.1
-    //   );
-    // }
-    window.alert("changed");
+    while (plane.rotation.z != 0) {
+      if (plane.rotation.z < 0) {
+        plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, 0, 0.1);
+      }
+      if (plane.rotation.z > 0) {
+        plane.rotation.z = THREE.MathUtils.lerp(plane.rotation.z, 0, 0.1);
+      }
+    }
+    window.alert("changed2");
     document.body.addEventListener("touchstart", process_touchstart, false);
     document.body.addEventListener("touchmove", process_touchmove, false);
     document.body.addEventListener("touchcancel", process_touchcancel, false);
@@ -129,7 +123,6 @@ function init() {
 
 // touchstart handler
 function process_touchstart(ev) {
-
   // Use the event's data to call out to the appropriate gesture handlers
   switch (ev.touches.length) {
     case 1:
@@ -153,16 +146,16 @@ function process_touchmove(ev) {
 
   var curr_touch_x = ev.targetTouches[0].clientX;
   var curr_touch_y = ev.targetTouches[0].clientY;
-  
+
   // Move forward
-  if(curr_touch_y - last_touch_y < 0){
+  if (curr_touch_y - last_touch_y < 0) {
     plane.translateX(0.2);
   }
   // Move back
-  if(curr_touch_y - last_touch_y > 0){
+  if (curr_touch_y - last_touch_y > 0) {
     plane.translateX(-0.2);
   }
- // requestAnimationFrame(animate);
+  // requestAnimationFrame(animate);
 
   //window.alert("curr_touch_x: " + curr_touch_x + "curr_touch_y: " + curr_touch_y);
 }
@@ -198,7 +191,6 @@ function handle_one_touch(ev) {
   last_touch_x = ev.touches[0].clientX;
   last_touch_y = ev.touches[0].clientY;
   //window.alert("x: " + last_touch_x + "y: " + last_touch_y);
-
 }
 function handle_two_touches(ev) {
   window.alert("touched with 2 fingers");
