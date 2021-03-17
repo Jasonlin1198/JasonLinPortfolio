@@ -481,8 +481,8 @@ function animate() {
 
   if (!mobileVersion) {
     airplaneControl.update();
-    moveKinematic();
   }
+  moveKinematic();
 
   updatePhysics(deltaTime);
   if (enablePostProcessing) {
