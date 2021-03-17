@@ -10,6 +10,10 @@ import {
 } from "./index.js";
 import { Vector3, Vector4 } from "./build/three.module.js";
 
+const STATE = { DISABLE_DEACTIVATION: 4 };
+
+const FLAGS = { CF_KINEMATIC_OBJECT: 2 };
+
 // Active Scene Objects
 var cube, plane, groundPlane, billboard;
 var rings = [];
@@ -72,7 +76,6 @@ function createObjects() {
   createTrees();
   createRocks();
   createName();
-  createImages();
   loadGLTFObject(
     "column1.glb",
     new Vector3(-6.1, 10, -150),
@@ -117,14 +120,14 @@ function createObjects() {
   );
   loadGLTFObject(
     "ramp.glb",
-    new Vector3(0, 5, 10),
+    new Vector3(0, 5, 12),
     new Vector3(1, 1, 1),
     new Vector4(0, 0, 0, 1),
-    new Vector3(1.5, 1.5, 1.5)
+    new Vector3(3.5, 1.5, 3)
   );
   loadGLTFObject(
     "hanger.glb",
-    new Vector3(38, 10, 0),
+    new Vector3(38, 12, 0),
     new Vector3(1, 1, 1),
     new Vector4(0, 0.1, 0, 1),
     new Vector3(7.5, 7.5, 7.5)
@@ -136,14 +139,52 @@ function createObjects() {
     new Vector4(0, 1000, 0, 1),
     new Vector3(1, 1, 1)
   );
+  
+  var blocks = [
+    { x: -42.5, y: 1, z: 0 },
+    { x: -37.5, y: 1, z: 0 },
+    { x: -32.5, y: 1, z: 0 },
+    { x: -27.5, y: 1, z: 0 },
+    { x: -40, y: 5, z: 0 },
+    { x: -35, y: 5, z: 0 },
+    { x: -30, y: 5, z: 0 },
+    { x: -37.5, y: 10, z: 0 },
+    { x: -32.5, y: 10, z: 0 },
+    { x: -35, y: 13, z: 0 },
+  ];
 
-  createExperienceText(messages[0], 1);
+  blocks.forEach((pos) => {
+    loadGLTFObject(
+      "block.glb",
+      new Vector3(pos.x, pos.y, pos.z),
+      new Vector3(1, 1, 1),
+      new Vector4(0, 1, 0, 1),
+      new Vector3(1, 1, 1.5)
+    );
+  });
+  
+  loadGLTFObject(
+    "experienceSign.glb",
+    new Vector3(25, 10, -60),
+    new Vector3(1, 1, 1),
+    new Vector4(0, -1, 0, 1),
+    new Vector3(1.5, 6, 1.5)
+  );
+  loadGLTFObject(
+    "playgroundSign.glb",
+    new Vector3(-25, 10, -60),
+    new Vector3(1, 1, 1),
+    new Vector4(0, -1, 0, 1),
+    new Vector3(1.5, 6, 1.5)
+  );
 
-  createExperienceText(messages[1], 2);
+  createExperienceText(messages[0], 2);
 
-  createExperienceText(messages[2], 3);
+  createExperienceText(messages[1], 3);
 
-  createExperienceText(messages[3], 4);
+  createExperienceText(messages[2], 4);
+
+  createExperienceText(messages[3], 5);
 
   createExperienceText(messages[4], -1.8);
 }
@@ -154,7 +195,7 @@ function createObjects() {
  * @param {*} scale | initial scale to spawn
  */
 function loadGLTFObject(filename, position, scale, quat, scaleMult) {
-  let mass = 1;
+  let mass = 3;
 
   const loader = new GLTFLoader().setPath("./models/");
   loader.load(filename, handleLoad, handleProgress);
@@ -275,7 +316,8 @@ function createGroundPlane() {
     localInertia
   );
   let body = new Ammo.btRigidBody(rbInfo);
-
+  body.setFriction(4);
+  body.setRollingFriction(10);
   physicsWorld.addRigidBody(body);
 }
 
@@ -335,50 +377,56 @@ function createAirplane() {
       }
     });
 
+    let pos = { x: 0, y: 1, z: 35 };
+    let scale = { x: 1, y: 1, z: 1 };
+    let scaleMult = { x: 1.5, y: 2, z: 2.5 };
+    let quat = { x: 0, y: 0, z: 0, w: 1 };
+    let mass = 1;
+
     // Get scene child from file
     plane = gltf.scene.children[0];
     scene.add(plane);
-    plane.position.set(0, 1, 35);
+    plane.position.set(pos.x, pos.y, pos.z);
 
     airplaneControl = new THREE.PlayerControls(plane);
 
-    // let pos = { x: 0, y: 2, z: 35.5 };
-    // let scale = { x: 4.5, y: 1, z: 3 };
-    // let quat = { x: 0, y: 0, z: 0, w: 1 };
-    // let mass = 0.1;
+    //Ammojs Section
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+    transform.setRotation(
+      new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+    let motionState = new Ammo.btDefaultMotionState(transform);
 
-    // // //Ammojs Section
+    let colShape = new Ammo.btBoxShape(
+      new Ammo.btVector3(
+        scale.x * scaleMult.x,
+        scale.y * scaleMult.y,
+        scale.z * scaleMult.z
+      )
+    );
+    colShape.setMargin(0.05);
 
-    // let transform = new Ammo.btTransform();
-    // transform.setIdentity();
-    // transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
-    // transform.setRotation(
-    //   new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
-    // );
-    // let motionState = new Ammo.btDefaultMotionState(transform);
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
 
-    // let colShape = new Ammo.btBoxShape(
-    //   new Ammo.btVector3(scale.x * 0.5, scale.y * 0.5, scale.z * 0.5)
-    // );
-    // colShape.setMargin(0.05);
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+      mass,
+      motionState,
+      colShape,
+      localInertia
+    );
+    let body = new Ammo.btRigidBody(rbInfo);
 
-    // let localInertia = new Ammo.btVector3(0, 0, 0);
-    // colShape.calculateLocalInertia(mass, localInertia);
+    body.setFriction(4);
+    body.setRollingFriction(10);
 
-    // let rbInfo = new Ammo.btRigidBodyConstructionInfo(
-    //   mass,
-    //   motionState,
-    //   colShape,
-    //   localInertia
-    // );
-    // let body = new Ammo.btRigidBody(rbInfo);
-    // body.setFriction(4);
-    // body.setRollingFriction(10);
+    body.setActivationState(STATE.DISABLE_DEACTIVATION);
+    body.setCollisionFlags(FLAGS.CF_KINEMATIC_OBJECT);
 
-    // physicsWorld.addRigidBody(body);
-
-    // plane.userData.physicsBody = body;
-    // rigidBodies.push(plane);
+    physicsWorld.addRigidBody(body);
+    plane.userData.physicsBody = body;
 
     // Begin Animation
     animate();
@@ -399,23 +447,100 @@ function createName() {
 
   // Load completion
   function handleLoad(gltf) {
-    var pos = -10.0;
+    let pos = { x: -15, y: 3, z: 0 };
+    let scale = { x: 1, y: 1, z: 1 };
+    let scaleMult = { x: 1.3, y: 1, z: 1.5 };
+    let quat = { x: 1, y: 0.1, z: 0, w: 1 };
+    let mass = 2;
+
+    gltf.scene.traverse(function (child) {
+      if (child.isMesh) {
+        child.castShadow = true;
+      }
+    });
 
     for (var i = 0; i < 5; i++) {
       var letter = gltf.scene.children[0];
-      letter.position.set(pos, 2, 0);
+      letter.position.set(pos.x, pos.y, pos.z);
       scene.add(letter);
 
-      pos += 3.0;
+      pos.x += 3.0;
+
+      let transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+      transform.setRotation(
+        new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+      );
+      let motionState = new Ammo.btDefaultMotionState(transform);
+
+      let colShape = new Ammo.btBoxShape(
+        new Ammo.btVector3(
+          scale.x * scaleMult.x,
+          scale.y * scaleMult.y,
+          scale.z * scaleMult.z
+        )
+      );
+      colShape.setMargin(0.05);
+
+      let localInertia = new Ammo.btVector3(0, 0, 0);
+      colShape.calculateLocalInertia(mass, localInertia);
+
+      let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+        mass,
+        motionState,
+        colShape,
+        localInertia
+      );
+      let body = new Ammo.btRigidBody(rbInfo);
+
+      physicsWorld.addRigidBody(body);
+
+      letter.userData.physicsBody = body;
+      rigidBodies.push(letter);
     }
-    pos += 2.0;
+
+    pos.x += 3.0;
 
     for (var i = 0; i < 3; i++) {
       var letter = gltf.scene.children[0];
-      letter.position.set(pos, 2, 0);
+      letter.position.set(pos.x, pos.y, pos.z);
       scene.add(letter);
 
-      pos += 2.0;
+      pos.x += 2.0;
+
+      let transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+      transform.setRotation(
+        new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+      );
+      let motionState = new Ammo.btDefaultMotionState(transform);
+
+      let colShape = new Ammo.btBoxShape(
+        new Ammo.btVector3(
+          scale.x * scaleMult.x,
+          scale.y * scaleMult.y,
+          scale.z * scaleMult.z
+        )
+      );
+      colShape.setMargin(0.05);
+
+      let localInertia = new Ammo.btVector3(0, 0, 0);
+      colShape.calculateLocalInertia(mass, localInertia);
+
+      let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+        mass,
+        motionState,
+        colShape,
+        localInertia
+      );
+      let body = new Ammo.btRigidBody(rbInfo);
+
+      physicsWorld.addRigidBody(body);
+
+      letter.userData.physicsBody = body;
+      rigidBodies.push(letter);
     }
   }
 
@@ -444,7 +569,7 @@ function createBillboards() {
     let pos = { x: -34, y: 8, z: -31.7 };
     let scale = { x: 14, y: 15, z: 1 };
     let quat = { x: 0, y: 0.14, z: 0, w: 1 };
-    let mass = 1;
+    let mass = 10;
 
     // Get scene child from file
     billboard = gltf.scene.children[0];
@@ -492,6 +617,8 @@ function createBillboards() {
 
     billboard.userData.physicsBody = body;
     rigidBodies.push(billboard);
+    createImages();
+
   }
 
   // Load progress
@@ -546,26 +673,25 @@ function createTrees() {
     });
 
     var positions = [
-      { x: 25, y: 8, z: -30 },
-      { x: -25, y: 10, z: -60 },
+      { x: 25, y: 8, z: -40 },
+      { x: -25, y: 10, z: -70 },
       { x: 25, y: 12, z: -90 },
       { x: -25, y: 14, z: -120 },
       { x: 25, y: 16, z: -150 },
     ];
+    let scale = { x: 9, y: 12.5, z: 9 };
+    let quat = { x: 0, y: 0, z: 0, w: 1 };
+    let mass = 1;
 
     // Get scene child from file
     for (let i = 0; i < 5; i++) {
       var tree = gltf.scene.children[0].clone();
       trees.push(tree);
       scene.add(trees[i]);
-      trees[i].position.set(positions[i].x, positions[i].y, positions[i].z);
-
       let pos = positions[i];
-      let scale = { x: 9, y: 12.5, z: 9 };
-      let quat = { x: 0, y: 0, z: 0, w: 1 };
-      let mass = 1;
+      trees[i].position.set(pos.x, pos.y, pos.z);
 
-      // //Ammojs Section
+      // Ammojs Section
 
       let transform = new Ammo.btTransform();
       transform.setIdentity();
@@ -620,18 +746,54 @@ function createRocks() {
       }
     });
 
+    var positions = [
+      { x: 15, y: 0.2, z: 0 },
+      { x: -25, y: 0.2, z: -20 },
+      { x: 30, y: 0.2, z: -23 },
+      { x: -37, y: 0.2, z: -50 },
+      { x: -10, y: 0.2, z: 15 },
+    ];
+    let scale = { x: 1.1, y: 0.7, z: 1.1 };
+    let quat = { x: 0, y: 0, z: 0, w: 1 };
+    let mass = 1;
+
     // Get scene child from file
     for (let i = 0; i < 5; i++) {
       var rock = gltf.scene.children[0].clone();
       rocks.push(rock);
       scene.add(rocks[i]);
-    }
 
-    rocks[0].position.set(12, 0.2, 0);
-    rocks[1].position.set(-25, 0.2, -20);
-    rocks[2].position.set(30, 0.2, -23);
-    rocks[3].position.set(-37, 0.2, -50);
-    rocks[4].position.set(-10, 0.2, 15);
+      let pos = positions[i];
+
+      rocks[i].position.set(pos.x, pos.y, pos.z);
+
+      let transform = new Ammo.btTransform();
+      transform.setIdentity();
+      transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+      transform.setRotation(
+        new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+      );
+      let motionState = new Ammo.btDefaultMotionState(transform);
+
+      let colShape = new Ammo.btBoxShape(
+        new Ammo.btVector3(scale.x, scale.y, scale.z)
+      );
+      colShape.setMargin(0.05);
+
+      let localInertia = new Ammo.btVector3(0, 0, 0);
+      colShape.calculateLocalInertia(mass, localInertia);
+
+      let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+        mass,
+        motionState,
+        colShape,
+        localInertia
+      );
+      let body = new Ammo.btRigidBody(rbInfo);
+      physicsWorld.addRigidBody(body);
+      rocks[i].userData.physicsBody = body;
+      rigidBodies.push(rocks[i]);
+    }
   }
 
   // Load progress
@@ -703,11 +865,13 @@ function createImages() {
   var mesh = new THREE.Mesh(geometry, material);
 
   // set the position of the image mesh in the x,y,z dimensions
-  mesh.position.set(-34, 10, -31.15);
-  mesh.rotation.y = Math.PI / 11.3;
-  mesh.scale.x = 1.2;
+  mesh.position.set(-0.1,2,0.53);
+  mesh.rotation.y = 0;
+  mesh.scale.x = 1.23;
   // add the image to the scene
   scene.add(mesh);
+
+  mesh.parent = billboard;
 }
 
 export {

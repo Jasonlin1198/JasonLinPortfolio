@@ -1,4 +1,10 @@
 import { WEBGL } from "./build/WebGL.js";
+import { RenderPass } from "./jsm/postprocessing/RenderPass.js";
+import { BokehPass } from "./jsm/postprocessing/BokehPass.js";
+import { EffectComposer } from "./jsm/postprocessing/EffectComposer.js";
+import { GammaCorrectionShader } from "./jsm/shaders/GammaCorrectionShader.js";
+import { ShaderPass } from "./jsm/postprocessing/ShaderPass.js";
+
 import {
   createObjects,
   mixer,
@@ -12,6 +18,10 @@ import {
   cloud,
   airplaneControl,
 } from "./models.js";
+
+// Post-processing
+var postprocessing = {};
+var enablePostProcessing = false;
 
 var mobileVersion = false;
 var last_touch_x = 0;
@@ -90,6 +100,8 @@ Ammo().then(init);
  * Parent function that instantiates all objects on load
  */
 function init() {
+  ammoTmpPos = new Ammo.btVector3();
+  ammoTmpQuat = new Ammo.btQuaternion();
   tmpTrans = new Ammo.btTransform();
 
   setupPhysicsWorld();
@@ -120,6 +132,53 @@ function init() {
     document.addEventListener("touchcancel", process_touchcancel, false);
     document.addEventListener("touchend", process_touchend, false);
   }
+
+  if (enablePostProcessing) {
+    initPostprocessing();
+  }
+}
+
+function initPostprocessing() {
+  const renderPass = new RenderPass(scene, camera);
+
+  const bokehPass = new BokehPass(scene, camera, {
+    aspect: WIDTH / HEIGHT,
+    focus: 1.0,
+    aperture: 0.025,
+    maxblur: 0.01,
+
+    width: WIDTH,
+    height: HEIGHT,
+  });
+
+  const gammaCorrectionPass = new ShaderPass(GammaCorrectionShader);
+
+  const composer = new EffectComposer(renderer);
+
+  composer.addPass(renderPass);
+  composer.addPass(gammaCorrectionPass);
+  composer.addPass(bokehPass);
+
+  postprocessing.composer = composer;
+  postprocessing.bokeh = bokehPass;
+
+  const effectController = {
+    focus: 0.0001,
+    aperture: 1,
+    maxblur: 0.002,
+  };
+
+  const matChanger = function () {
+    postprocessing.bokeh.uniforms["focus"].value = effectController.focus;
+    postprocessing.bokeh.uniforms["aperture"].value =
+      effectController.aperture * 0.00001;
+    postprocessing.bokeh.uniforms["maxblur"].value = effectController.maxblur;
+    postprocessing.enabled = effectController.enabled;
+    postprocessing.bokeh_uniforms["near"].value = camera.near;
+    postprocessing.bokeh_uniforms["far"].value = camera.far;
+  };
+
+  matChanger();
 }
 
 // touchstart handler
@@ -261,6 +320,9 @@ function handleWindowResize() {
   renderer.setSize(WIDTH, HEIGHT);
   camera.aspect = WIDTH / HEIGHT;
   camera.updateProjectionMatrix();
+  if (enablePostProcessing) {
+    postprocessing.composer.setSize(WIDTH, HEIGHT);
+  }
 }
 
 /**
@@ -316,7 +378,7 @@ function createLights() {
   ambientLight = new THREE.AmbientLight(Colors.softwhite, ambientIntensity);
 
   // Point Light Objects in Scene
-  const pointIntensity = 0.8;
+  const pointIntensity = 2;
   pointLight1 = new THREE.PointLight(Colors.softwhite, pointIntensity, 50, 2);
   pointLight1.position.set(0, 20, 0);
 
@@ -409,6 +471,8 @@ function update(deltaTime) {
  * Draws the Scene per frame
  */
 function animate() {
+  requestAnimationFrame(animate, renderer.domElement);
+
   // Updates animations per delta units
   var deltaTime = clock.getDelta();
 
@@ -417,17 +481,41 @@ function animate() {
 
   if (!mobileVersion) {
     airplaneControl.update();
+    moveKinematic();
   }
 
   updatePhysics(deltaTime);
-  // let resultantImpulse = new Ammo.btVector3( 1, 0, 0 )
-  // resultantImpulse.op_mul(20);
+  if (enablePostProcessing) {
+    postprocessing.composer.render(0.1);
+  } else {
+    renderer.render(scene, camera);
+  }
+}
 
-  // let physicsBody = plane.userData.physicsBody;
-  // physicsBody.setLinearVelocity( resultantImpulse );
+////////////////////////////////
 
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
+let tmpPos = new THREE.Vector3(),
+  tmpQuat = new THREE.Quaternion();
+let ammoTmpPos = null,
+  ammoTmpQuat = null;
+
+function moveKinematic() {
+  plane.getWorldPosition(tmpPos);
+  plane.getWorldQuaternion(tmpQuat);
+
+  let physicsBody = plane.userData.physicsBody;
+
+  let ms = physicsBody.getMotionState();
+  if (ms) {
+    ammoTmpPos.setValue(tmpPos.x, tmpPos.y, tmpPos.z);
+    ammoTmpQuat.setValue(tmpQuat.x, tmpQuat.y, tmpQuat.z, tmpQuat.w);
+
+    tmpTrans.setIdentity();
+    tmpTrans.setOrigin(ammoTmpPos);
+    tmpTrans.setRotation(ammoTmpQuat);
+
+    ms.setWorldTransform(tmpTrans);
+  }
 }
 
 export {
