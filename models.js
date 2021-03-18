@@ -15,42 +15,49 @@ const STATE = { DISABLE_DEACTIVATION: 4 };
 const FLAGS = { CF_KINEMATIC_OBJECT: 2 };
 
 // Active Scene Objects
-var cube, plane, groundPlane, billboard;
+var cube, plane, groundPlane, billboard, golfCart;
 var rings = [];
 var trees = [];
 var rocks = [];
 var cloud = [];
 
 // Animation Variables
-var mixer;
+var mixer, golfcartMixer;
 
 // Controllers
 var airplaneControl;
 
 var messages = [
-  `Online Private Instructor\n
-iD Tech Camps\n\n
-Instructed 150+ lessons to K-12 students on Python, Java, Scratch, and JavaScript\n
-Designed unique curriculums to accommodate students’ individual needs and interests\n
-Leveraged Full Stack Development to help students deploy web applications and games`,
-
-  `Software Engineer Intern \n
-UpperLine Code\n\n
-Developed computer science projects using JavaScript, HTML and CSS designed for student education\n
-Maintained Git repo and Amazon Web Services for building and debugging course exercises`,
-
-  `SortingVisualizer\n
-JavaScript Web Application\n\n
-Developed a web application using JavaScript, HTML, CSS to visually sort data using various sorting algorithms\n
-Implemented Merge Sort, Insertion Sort, Bubble Sort, Selection Sort\n
-Integrated a code executor using Sphere Engine’s Compiler API to enable users to practice sorting algorithms`,
+  `Software Development Engineer\n
+Amazon\n\n
+Incoming 2021 SDE in the Greater Seattle Area`,
 
   `Undergraduate Research Engineer\n
 Pacific Research Platform\n\n
-Developed real-time visualization of traceroutes between servers in 3D virtual space using NetBox and UE4.\n
-Handled procedural generation of NetBox data and deployed applications with Docker and Kubernetes Clusters`,
+Developed real-time visualization of traceroutes between \nservers in 3D virtual space using NetBox and UE4.\n
+Handled procedural generation of NetBox data and deployed\napplications with Docker and Kubernetes Clusters`,
 
-  "USE YOUR                                        KEYS\n\n\n                TO MOVE AROUND",
+  `Online Private Instructor\n
+iD Tech Camps\n\n
+Instructed 150+ lessons to K-12 students\non Python, Java, Scratch, and JavaScript\n
+Designed unique curriculums to accommodate\nstudents’ individual needs and interests\n
+Leveraged Full Stack Development to help\nstudents deploy web applications and games`,
+
+  `SortingVisualizer\n
+JavaScript Web Application\n\n
+Developed a web application using JavaScript, HTML, CSS to\nvisually sort data using various sorting algorithms\n
+Implemented Merge Sort, Insertion Sort, Bubble Sort, Selection Sort\n
+Integrated a code executor using Sphere Engine’s Compiler API\nto enable users to practice sorting algorithms`,
+
+  `Software Engineer Intern \n
+UpperLine Code\n\n
+Developed computer science projects using\nJavaScript, HTML and CSS designed for student education\nWD
+Maintained Git repo and Amazon Web Services\nfor building and debugging course exercises`,
+
+  `USE YOUR                                        KEYS\n\n\n                TO MOVE AROUND\n
+Q - TILT UP\n
+E - TILT DOWN\n
+SHIFT - BOOST\n`,
 ];
 
 if (!mobileVersion) {
@@ -69,9 +76,38 @@ function createObjects() {
   } else {
     createAirplane();
   }
-
+  createGolfCart();
   createGroundPlane();
-  createBillboards();
+  createBillboard(
+    "./vendor/img/amazon.png",
+    new Vector3(55, 8, -60),
+    new Vector3(14, 15, 1),
+    new Vector4(0, 0, 0, 1)
+  );
+  createBillboard(
+    "./vendor/img/PRP_logo.jpg",
+    new Vector3(85, 8, -60),
+    new Vector3(14, 15, 1),
+    new Vector4(0, 0, 0, 1)
+  );
+  createBillboard(
+    "./vendor/img/idtech_logo.jpg",
+    new Vector3(115, 8, -60),
+    new Vector3(14, 15, 1),
+    new Vector4(0, 0, 0, 1)
+  );
+  createBillboard(
+    "./vendor/img/sortingvisualizer.png",
+    new Vector3(145, 8, -60),
+    new Vector3(14, 15, 1),
+    new Vector4(0, 0, 0, 1)
+  );
+  createBillboard(
+    "./vendor/img/upperline_logo.png",
+    new Vector3(175, 8, -60),
+    new Vector3(14, 15, 1),
+    new Vector4(0, 0, 0, 1)
+  );
   createRings();
   createTrees();
   createRocks();
@@ -139,7 +175,7 @@ function createObjects() {
     new Vector4(0, 1000, 0, 1),
     new Vector3(1, 1, 1)
   );
-  
+
   var blocks = [
     { x: -42.5, y: 1, z: 0 },
     { x: -37.5, y: 1, z: 0 },
@@ -162,7 +198,7 @@ function createObjects() {
       new Vector3(1, 1, 1.5)
     );
   });
-  
+
   loadGLTFObject(
     "experienceSign.glb",
     new Vector3(25, 10, -60),
@@ -178,15 +214,17 @@ function createObjects() {
     new Vector3(1.5, 6, 1.5)
   );
 
-  createExperienceText(messages[0], 2);
+  createExperienceText(messages[0], new Vector3(60, 0.01, -55));
 
-  createExperienceText(messages[1], 3);
+  createExperienceText(messages[1], new Vector3(90, 0.01, -55));
 
-  createExperienceText(messages[2], 4);
+  createExperienceText(messages[2], new Vector3(120, 0.01, -55));
 
-  createExperienceText(messages[3], 5);
+  createExperienceText(messages[3], new Vector3(150, 0.01, -55));
 
-  createExperienceText(messages[4], -1.8);
+  createExperienceText(messages[4], new Vector3(180, 0.01, -55));
+
+  createExperienceText(messages[5], new Vector3(0, 0.01, 27));
 }
 /**
  * GLTF Loader initializes object into scene
@@ -318,10 +356,12 @@ function createGroundPlane() {
   let body = new Ammo.btRigidBody(rbInfo);
   body.setFriction(4);
   body.setRollingFriction(10);
+  groundPlane.userData.physicsBody = body;
+
   physicsWorld.addRigidBody(body);
 }
 
-function createExperienceText(message, offset) {
+function createExperienceText(message, position) {
   const loader = new THREE.FontLoader();
   loader.load("fonts/helvetiker_bold.typeface.json", function (font) {
     const color = Colors.white;
@@ -350,7 +390,7 @@ function createExperienceText(message, offset) {
 
     // Rotate to match plane, translate
     text.rotation.x = -Math.PI / 2;
-    text.position.set(0, 0.01, -15 * offset);
+    text.position.set(position.x, position.y, position.z);
 
     scene.add(text);
   }); //end load function
@@ -377,7 +417,7 @@ function createAirplane() {
       }
     });
 
-    let pos = { x: 0, y: 1, z: 35 };
+    let pos = { x: 0, y: 2, z: 35 };
     let scale = { x: 1, y: 1, z: 1 };
     let scaleMult = { x: 1.5, y: 2, z: 2.5 };
     let quat = { x: 0, y: 0, z: 0, w: 1 };
@@ -435,6 +475,83 @@ function createAirplane() {
   // Load progress
   function handleProgress(xhr) {
     console.log("Airplane: " + (xhr.loaded / xhr.total) * 100 + "% loaded");
+  }
+}
+
+
+
+/**
+ * Loads GLTF/GLB airplane files from Blender
+ */
+ function createGolfCart() {
+  const loader = new GLTFLoader().setPath("./models/");
+  loader.load("golfcart.glb", handleLoad, handleProgress);
+
+  // Load completion
+  function handleLoad(gltf) {
+    golfcartMixer = new THREE.AnimationMixer(gltf.scene);
+
+    const clips = gltf.animations;
+    clips.forEach( function ( clip ) {
+      golfcartMixer.clipAction( clip ).play();
+    } );
+    
+
+    // Enable Shadows for loaded objects children
+    gltf.scene.traverse(function (child) {
+      if (child.isMesh) {
+        child.castShadow = true;
+      }
+    });
+
+    let pos = { x: 100, y: 0, z: -10 };
+    let scale = { x: 1, y: 1, z: 1 };
+    let scaleMult = { x: 2, y: 2.5, z: 3.2 };
+    let quat = { x: 0, y: 1, z: 0, w: 1 };
+    let mass = 1;
+
+    // Get scene child from file
+    golfCart = gltf.scene.children[0];
+    scene.add(golfCart);
+    golfCart.position.set(pos.x, pos.y, pos.z);
+    //Ammojs Section
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(pos.x, pos.y, pos.z));
+    transform.setRotation(
+      new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+    let motionState = new Ammo.btDefaultMotionState(transform);
+
+    let colShape = new Ammo.btBoxShape(
+      new Ammo.btVector3(
+        scale.x * scaleMult.x,
+        scale.y * scaleMult.y,
+        scale.z * scaleMult.z
+      )
+    );
+    colShape.setMargin(0.05);
+
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
+
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+      mass,
+      motionState,
+      colShape,
+      localInertia
+    );
+    let body = new Ammo.btRigidBody(rbInfo);
+
+    physicsWorld.addRigidBody(body);
+    golfCart.userData.physicsBody = body;
+    rigidBodies.push(golfCart);
+  
+  }
+
+  // Load progress
+  function handleProgress(xhr) {
+    console.log("Golfcart: " + (xhr.loaded / xhr.total) * 100 + "% loaded");
   }
 }
 
@@ -553,9 +670,9 @@ function createName() {
 /**
  * Loads GLTF/GLB billboard files from Blender
  */
-function createBillboards() {
+function createBillboard(imageFileName, pos, scale, quat) {
   const loader = new GLTFLoader().setPath("./models/");
-  loader.load("billboard2.glb", handleLoad, handleProgress);
+  loader.load("billboard3.glb", handleLoad, handleProgress);
 
   // Load completion
   function handleLoad(gltf) {
@@ -566,9 +683,6 @@ function createBillboards() {
       }
     });
 
-    let pos = { x: -34, y: 8, z: -31.7 };
-    let scale = { x: 14, y: 15, z: 1 };
-    let quat = { x: 0, y: 0.14, z: 0, w: 1 };
     let mass = 10;
 
     // Get scene child from file
@@ -617,8 +731,9 @@ function createBillboards() {
 
     billboard.userData.physicsBody = body;
     rigidBodies.push(billboard);
-    createImages();
 
+    var image = createImages(imageFileName);
+    image.parent = billboard;
   }
 
   // Load progress
@@ -673,18 +788,29 @@ function createTrees() {
     });
 
     var positions = [
-      { x: 25, y: 8, z: -40 },
+      { x: 70, y: 6, z: 10 },
+      { x: -50, y: 6, z: 10 },
+      { x: 120, y: 7, z: -5 },
+      { x: -40, y: 7, z: -40 },
+      { x: 70, y: 12, z: -80 },
+      { x: 150, y: 12, z: -90 },
+      { x: -50, y: 13, z: -100 },
+
+      { x: 25, y: 8, z: -50 },
       { x: -25, y: 10, z: -70 },
       { x: 25, y: 12, z: -90 },
       { x: -25, y: 14, z: -120 },
       { x: 25, y: 16, z: -150 },
     ];
-    let scale = { x: 9, y: 12.5, z: 9 };
-    let quat = { x: 0, y: 0, z: 0, w: 1 };
-    let mass = 1;
+
+    let mass = 100;
 
     // Get scene child from file
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < positions.length; i++) {
+
+      let scale = { x: 9, y: 12.5, z: 9 };
+      let quat = { x: 0, y: Math.random()*3, z: 0, w: 1 };
+
       var tree = gltf.scene.children[0].clone();
       trees.push(tree);
       scene.add(trees[i]);
@@ -848,13 +974,13 @@ function createCloud() {
 /**
  * Handles creations of 2D images into scene
  */
-function createImages() {
+function createImages(filename) {
   // Create a texture loader so we can load our image file
   var loader = new THREE.TextureLoader();
 
   // Load an image file into a custom material
   var material = new THREE.MeshLambertMaterial({
-    map: loader.load("./vendor/img/PRP_logo.jpg"),
+    map: loader.load(filename),
   });
 
   // create a plane geometry for the image with a width of 10
@@ -865,22 +991,25 @@ function createImages() {
   var mesh = new THREE.Mesh(geometry, material);
 
   // set the position of the image mesh in the x,y,z dimensions
-  mesh.position.set(-0.1,2,0.53);
+  mesh.position.set(-0.1, 2, 0);
   mesh.rotation.y = 0;
-  mesh.scale.x = 1.23;
+  mesh.scale.x = 1.15;
+  mesh.scale.y = 0.93;
   // add the image to the scene
   scene.add(mesh);
 
-  mesh.parent = billboard;
+  return mesh;
 }
 
 export {
   createObjects,
   mixer,
+  golfcartMixer,
   cube,
   plane,
   groundPlane,
   billboard,
+  golfCart,
   rings,
   trees,
   rocks,

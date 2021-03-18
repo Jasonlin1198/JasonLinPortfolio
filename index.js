@@ -8,10 +8,12 @@ import { ShaderPass } from "./jsm/postprocessing/ShaderPass.js";
 import {
   createObjects,
   mixer,
+  golfcartMixer,
   cube,
   plane,
   groundPlane,
   billboard,
+  golfCart,
   rings,
   trees,
   rocks,
@@ -479,10 +481,16 @@ function animate() {
   update(deltaTime);
   if (mixer) mixer.update(deltaTime);
 
+  if (golfcartMixer && golfCart) {
+    golfcartMixer.update(deltaTime);
+    moveKinematic(golfCart);
+    //console.log(golfCart.position);
+  }
+  
   if (!mobileVersion) {
     airplaneControl.update();
   }
-  moveKinematic();
+  moveKinematic(plane);
 
   updatePhysics(deltaTime);
   if (enablePostProcessing) {
@@ -499,11 +507,11 @@ let tmpPos = new THREE.Vector3(),
 let ammoTmpPos = null,
   ammoTmpQuat = null;
 
-function moveKinematic() {
-  plane.getWorldPosition(tmpPos);
-  plane.getWorldQuaternion(tmpQuat);
+function moveKinematic(obj) {
+  obj.getWorldPosition(tmpPos);
+  obj.getWorldQuaternion(tmpQuat);
 
-  let physicsBody = plane.userData.physicsBody;
+  let physicsBody = obj.userData.physicsBody;
 
   let ms = physicsBody.getMotionState();
   if (ms) {
