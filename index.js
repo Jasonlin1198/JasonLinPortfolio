@@ -118,7 +118,7 @@ function init() {
 
   // // Touch controls
   if (mobileVersion) {
-    window.alert("changed7");
+    window.alert("Mobile verision being updated");
 
     // Flip Airplane to correct orientation intitially
     // while (plane.rotation.z != 0) {

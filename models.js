@@ -173,7 +173,7 @@ function createObjects() {
     new Vector3(1.1, 1.2, 27),
     new Vector3(1, 1, 1),
     new Vector4(0, 1000, 0, 1),
-    new Vector3(1, 1, 1)
+    new Vector3(2, 2, 2.5)
   );
 
   var blocks = [
@@ -214,6 +214,47 @@ function createObjects() {
     new Vector3(1.5, 6, 1.5)
   );
 
+  var pins = [
+    { x: -80, y: 1, z: -50 },
+
+    { x: -82, y: 1, z: -52 },
+    { x: -78, y: 1, z: -52 },
+
+    { x: -84, y: 1, z: -54 },
+    { x: -76, y: 1, z: -54 },
+    { x: -80, y: 1, z: -54 },
+
+    { x: -82, y: 1, z: -56 },
+    { x: -78, y: 1, z: -56 },
+    { x: -86, y: 1, z: -56 },
+    { x: -74, y: 1, z: -56 },
+  ];
+
+  pins.forEach((pos) => {
+    loadGLTFObject(
+      "bowlingpin.glb",
+      new Vector3(pos.x, pos.y, pos.z),
+      new Vector3(1, 2, 1),
+      new Vector4(0, 1, 0, 1),
+      new Vector3(0.8, 1.5, 0.8),
+      1
+    );
+  });
+
+  loadGLTFObjectSphere(
+    "bowlingball.glb",
+    new Vector3(-80, 8, -30),
+    1.7,
+    new Vector4(0, -1, 0, 1)
+  );
+
+  loadGLTFObject(
+    "golfflag.glb",
+    new Vector3(170, 3, -30),
+    new Vector3(1, 1, 1),
+    new Vector4(0, 1, 0, 1),
+    new Vector3(0.5, 3, 0.5)
+  );
   createExperienceText(messages[0], new Vector3(60, 0.01, -55));
 
   createExperienceText(messages[1], new Vector3(90, 0.01, -55));
@@ -232,8 +273,7 @@ function createObjects() {
  * @param {*} position | initial position to spawn
  * @param {*} scale | initial scale to spawn
  */
-function loadGLTFObject(filename, position, scale, quat, scaleMult) {
-  let mass = 3;
+function loadGLTFObject(filename, position, scale, quat, scaleMult, mass = 3 ) {
 
   const loader = new GLTFLoader().setPath("./models/");
   loader.load(filename, handleLoad, handleProgress);
@@ -269,6 +309,67 @@ function loadGLTFObject(filename, position, scale, quat, scaleMult) {
         scale.z * scaleMult.z
       )
     );
+    colShape.setMargin(0.05);
+
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
+
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+      mass,
+      motionState,
+      colShape,
+      localInertia
+    );
+    let body = new Ammo.btRigidBody(rbInfo);
+
+    physicsWorld.addRigidBody(body);
+
+    obj.userData.physicsBody = body;
+    rigidBodies.push(obj);
+  }
+  // Load progress
+  function handleProgress(xhr) {
+    console.log(filename + ": " + (xhr.loaded / xhr.total) * 100 + "% loaded");
+  }
+}
+
+/**
+ * GLTF Loader initializes object into scene
+ * @param {*} filename | name of 3D model file
+ * @param {*} position | initial position to spawn
+ * @param {*} scale | initial scale to spawn
+ */
+function loadGLTFObjectSphere(filename, position, radius, quat) {
+  let mass = 3;
+
+  const loader = new GLTFLoader().setPath("./models/");
+  loader.load(filename, handleLoad, handleProgress);
+
+  // Load completion
+  function handleLoad(gltf) {
+    // Enable Shadows for loaded objects children
+    gltf.scene.traverse(function (child) {
+      if (child.isMesh) {
+        child.castShadow = true;
+      }
+    });
+
+    // Get scene child from file
+    var obj = gltf.scene.children[0];
+
+    obj.position.set(position.x, position.y, position.z);
+
+    scene.add(obj);
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
+    transform.setRotation(
+      new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+    let motionState = new Ammo.btDefaultMotionState(transform);
+
+    let colShape = new Ammo.btSphereShape(radius);
     colShape.setMargin(0.05);
 
     let localInertia = new Ammo.btVector3(0, 0, 0);
@@ -421,7 +522,7 @@ function createAirplane() {
     let scale = { x: 1, y: 1, z: 1 };
     let scaleMult = { x: 1.5, y: 2, z: 2.5 };
     let quat = { x: 0, y: 0, z: 0, w: 1 };
-    let mass = 1;
+    let mass = 2;
 
     // Get scene child from file
     plane = gltf.scene.children[0];
@@ -478,12 +579,10 @@ function createAirplane() {
   }
 }
 
-
-
 /**
  * Loads GLTF/GLB airplane files from Blender
  */
- function createGolfCart() {
+function createGolfCart() {
   const loader = new GLTFLoader().setPath("./models/");
   loader.load("golfcart.glb", handleLoad, handleProgress);
 
@@ -492,10 +591,9 @@ function createAirplane() {
     golfcartMixer = new THREE.AnimationMixer(gltf.scene);
 
     const clips = gltf.animations;
-    clips.forEach( function ( clip ) {
-      golfcartMixer.clipAction( clip ).play();
-    } );
-    
+    clips.forEach(function (clip) {
+      golfcartMixer.clipAction(clip).play();
+    });
 
     // Enable Shadows for loaded objects children
     gltf.scene.traverse(function (child) {
@@ -546,7 +644,6 @@ function createAirplane() {
     physicsWorld.addRigidBody(body);
     golfCart.userData.physicsBody = body;
     rigidBodies.push(golfCart);
-  
   }
 
   // Load progress
@@ -807,9 +904,8 @@ function createTrees() {
 
     // Get scene child from file
     for (let i = 0; i < positions.length; i++) {
-
       let scale = { x: 9, y: 12.5, z: 9 };
-      let quat = { x: 0, y: Math.random()*3, z: 0, w: 1 };
+      let quat = { x: 0, y: Math.random() * 3, z: 0, w: 1 };
 
       var tree = gltf.scene.children[0].clone();
       trees.push(tree);
