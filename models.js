@@ -15,7 +15,7 @@ const STATE = { DISABLE_DEACTIVATION: 4 };
 const FLAGS = { CF_KINEMATIC_OBJECT: 2 };
 
 // Active Scene Objects
-var cube, plane, groundPlane, billboard, golfCart;
+var cube, plane, groundPlane, billboard, golfCart, bowlingBall;
 var rings = [];
 var trees = [];
 var rocks = [];
@@ -23,6 +23,9 @@ var cloud = [];
 
 // Animation Variables
 var mixer, golfcartMixer;
+
+// 2D Scene
+var bowlingLine, golfballLine, sortingVisulizerLine;
 
 // Controllers
 var airplaneControl;
@@ -173,20 +176,77 @@ function createObjects() {
     new Vector3(1.1, 1.2, 27),
     new Vector3(1, 1, 1),
     new Vector4(0, 1000, 0, 1),
-    new Vector3(2, 2, 2.5)
+    new Vector3(2, 1, 2.5)
   );
 
   var blocks = [
-    { x: -42.5, y: 1, z: 0 },
-    { x: -37.5, y: 1, z: 0 },
-    { x: -32.5, y: 1, z: 0 },
-    { x: -27.5, y: 1, z: 0 },
-    { x: -40, y: 5, z: 0 },
-    { x: -35, y: 5, z: 0 },
-    { x: -30, y: 5, z: 0 },
-    { x: -37.5, y: 10, z: 0 },
-    { x: -32.5, y: 10, z: 0 },
-    { x: -35, y: 13, z: 0 },
+    // Set #1
+    { x: -132.5, y: 1, z: 0 },
+    { x: -127.5, y: 1, z: 0 },
+    { x: -122.5, y: 1, z: 0 },
+    { x: -117.5, y: 1, z: 0 },
+    { x: -130, y: 5, z: 0 },
+    { x: -125, y: 5, z: 0 },
+    { x: -120, y: 5, z: 0 },
+    { x: -127.5, y: 10, z: 0 },
+    { x: -122.5, y: 10, z: 0 },
+    { x: -125, y: 13, z: 0 },
+
+    // Set #2
+    { x: -132.5, y: 1, z: -15 },
+    { x: -129.5, y: 1, z: -15 },
+    { x: -126.5, y: 1, z: -15 },
+    { x: -123.5, y: 1, z: -15 },
+    { x: -120.5, y: 1, z: -15 },
+    { x: -117.5, y: 1, z: -15 },
+
+    { x: -131, y: 3, z: -15 },
+    { x: -128, y: 3, z: -15 },
+    { x: -125, y: 3, z: -15 },
+    { x: -122, y: 3, z: -15 },
+    { x: -119, y: 3, z: -15 },
+
+    { x: -132.5, y: 6, z: -15 },
+    { x: -129.5, y: 6, z: -15 },
+    { x: -126.5, y: 6, z: -15 },
+    { x: -123.5, y: 6, z: -15 },
+    { x: -120.5, y: 6, z: -15 },
+    { x: -117.5, y: 6, z: -15 },
+
+    { x: -131, y: 8, z: -15 },
+    { x: -128, y: 8, z: -15 },
+    { x: -125, y: 8, z: -15 },
+    { x: -122, y: 8, z: -15 },
+    { x: -119, y: 8, z: -15 },
+
+    // Set #3
+    { x: -132.5, y: 1, z: -30 },
+    { x: -129.5, y: 1, z: -30 },
+    { x: -126.5, y: 1, z: -30 },
+    { x: -123.5, y: 1, z: -30 },
+    { x: -120.5, y: 1, z: -30 },
+    { x: -117.5, y: 1, z: -30 },
+
+    { x: -132.5, y: 4, z: -30 },
+    { x: -129.5, y: 4, z: -30 },
+    { x: -126.5, y: 4, z: -30 },
+    { x: -123.5, y: 4, z: -30 },
+    { x: -120.5, y: 4, z: -30 },
+    { x: -117.5, y: 4, z: -30 },
+
+    { x: -132.5, y: 7, z: -30 },
+    { x: -129.5, y: 7, z: -30 },
+    { x: -126.5, y: 7, z: -30 },
+    { x: -123.5, y: 7, z: -30 },
+    { x: -120.5, y: 7, z: -30 },
+    { x: -117.5, y: 7, z: -30 },
+
+    { x: -132.5, y: 10, z: -30 },
+    { x: -129.5, y: 10, z: -30 },
+    { x: -126.5, y: 10, z: -30 },
+    { x: -123.5, y: 10, z: -30 },
+    { x: -120.5, y: 10, z: -30 },
+    { x: -117.5, y: 10, z: -30 },
   ];
 
   blocks.forEach((pos) => {
@@ -241,20 +301,106 @@ function createObjects() {
     );
   });
 
-  loadGLTFObjectSphere(
+  loadGLTFObjectSphereBowling(
     "bowlingball.glb",
-    new Vector3(-80, 8, -30),
-    1.7,
+    new Vector3(-80, 8, -10),
+    1.5,
     new Vector4(0, -1, 0, 1)
   );
 
   loadGLTFObject(
     "golfflag.glb",
-    new Vector3(170, 3, -30),
+    new Vector3(180, 4, -20),
     new Vector3(1, 1, 1),
     new Vector4(0, 1, 0, 1),
-    new Vector3(0.5, 3, 0.5)
+    new Vector3(0.5, 4, 0.5)
   );
+
+  loadGLTFObjectSphere(
+    "golfball.glb",
+    new Vector3(170, 3, -20),
+    0.75,
+    new Vector4(0, 0, 0, 1)
+  );
+
+  createResetAreaBowling(
+    new Vector3(-90, 0, -5),
+    new Vector3(-70, 0, -5),
+    new Vector3(-70, 0, 5),
+    new Vector3(-90, 0, 5)
+  );
+  createExperienceText("Enter", new Vector3(-80, 0.01, 0));
+
+  createResetAreaGolf(
+    new Vector3(160, 0, -10),
+    new Vector3(170, 0, -10),
+    new Vector3(170, 0, -5),
+    new Vector3(160, 0, -5)
+  );
+  createExperienceText("Enter", new Vector3(165, 0.01, -7.5));
+
+  // PRP
+  createLinks(
+    new Vector3(80, 0, -40),
+    new Vector3(90, 0, -40),
+    new Vector3(90, 0, -35),
+    new Vector3(80, 0, -35)
+  );
+  createExperienceText("Enter", new Vector3(85, 0.01, -37.5));
+  // idTech
+  createLinks(
+    new Vector3(110, 0, -40),
+    new Vector3(120, 0, -40),
+    new Vector3(120, 0, -35),
+    new Vector3(110, 0, -35)
+  );
+  createExperienceText("Enter", new Vector3(115, 0.01, -37.5));
+
+  // Sorting Visualizer
+  createLinks(
+    new Vector3(140, 0, -40),
+    new Vector3(150, 0, -40),
+    new Vector3(150, 0, -35),
+    new Vector3(140, 0, -35)
+  );
+  createExperienceText("Enter", new Vector3(145, 0.01, -37.5));
+
+  // Upperline Code
+  createLinks(
+    new Vector3(170, 0, -40),
+    new Vector3(180, 0, -40),
+    new Vector3(180, 0, -35),
+    new Vector3(170, 0, -35)
+  );
+  createExperienceText("Enter", new Vector3(175, 0.01, -37.5));
+
+  // Linkedin
+  createLinks(
+    new Vector3(-10, 0, -145),
+    new Vector3(-5, 0, -145),
+    new Vector3(-5, 0, -140),
+    new Vector3(-10, 0, -140)
+  );
+  createExperienceText("Enter", new Vector3(-7.5, 0.01, -142.5));
+
+  // Github
+  createLinks(
+    new Vector3(-2.5, 0, -145),
+    new Vector3(2.5, 0, -145),
+    new Vector3(2.5, 0, -140),
+    new Vector3(-2.5, 0, -140)
+  );
+  createExperienceText("Enter", new Vector3(0, 0.01, -142.5));
+
+  // Email
+  createLinks(
+    new Vector3(5, 0, -145),
+    new Vector3(10, 0, -145),
+    new Vector3(10, 0, -140),
+    new Vector3(5, 0, -140)
+  );
+  createExperienceText("Enter", new Vector3(7.5, 0.01, -142.5));
+
   createExperienceText(messages[0], new Vector3(60, 0.01, -55));
 
   createExperienceText(messages[1], new Vector3(90, 0.01, -55));
@@ -267,14 +413,14 @@ function createObjects() {
 
   createExperienceText(messages[5], new Vector3(0, 0.01, 27));
 }
+
 /**
  * GLTF Loader initializes object into scene
  * @param {*} filename | name of 3D model file
  * @param {*} position | initial position to spawn
  * @param {*} scale | initial scale to spawn
  */
-function loadGLTFObject(filename, position, scale, quat, scaleMult, mass = 3 ) {
-
+function loadGLTFObject(filename, position, scale, quat, scaleMult, mass = 3) {
   const loader = new GLTFLoader().setPath("./models/");
   loader.load(filename, handleLoad, handleProgress);
 
@@ -393,7 +539,61 @@ function loadGLTFObjectSphere(filename, position, radius, quat) {
     console.log(filename + ": " + (xhr.loaded / xhr.total) * 100 + "% loaded");
   }
 }
+function loadGLTFObjectSphereBowling(filename, position, radius, quat) {
+  let mass = 3;
 
+  const loader = new GLTFLoader().setPath("./models/");
+  loader.load(filename, handleLoad, handleProgress);
+
+  // Load completion
+  function handleLoad(gltf) {
+    // Enable Shadows for loaded objects children
+    gltf.scene.traverse(function (child) {
+      if (child.isMesh) {
+        child.castShadow = true;
+      }
+    });
+
+    // Get scene child from file
+    var obj = gltf.scene.children[0];
+
+    obj.position.set(position.x, position.y, position.z);
+
+    scene.add(obj);
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(position.x, position.y, position.z));
+    transform.setRotation(
+      new Ammo.btQuaternion(quat.x, quat.y, quat.z, quat.w)
+    );
+    let motionState = new Ammo.btDefaultMotionState(transform);
+
+    let colShape = new Ammo.btSphereShape(radius);
+    colShape.setMargin(0.05);
+
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    colShape.calculateLocalInertia(mass, localInertia);
+
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(
+      mass,
+      motionState,
+      colShape,
+      localInertia
+    );
+    let body = new Ammo.btRigidBody(rbInfo);
+
+    physicsWorld.addRigidBody(body);
+
+    obj.userData.physicsBody = body;
+    rigidBodies.push(obj);
+    bowlingBall = obj;
+  }
+  // Load progress
+  function handleProgress(xhr) {
+    console.log(filename + ": " + (xhr.loaded / xhr.total) * 100 + "% loaded");
+  }
+}
 /**
  * Creates Controlled Cube Player as Default on start
  */
@@ -518,7 +718,7 @@ function createAirplane() {
       }
     });
 
-    let pos = { x: 0, y: 2, z: 35 };
+    let pos = { x: 0, y: 2, z: 45 };
     let scale = { x: 1, y: 1, z: 1 };
     let scaleMult = { x: 1.5, y: 2, z: 2.5 };
     let quat = { x: 0, y: 0, z: 0, w: 1 };
@@ -844,7 +1044,7 @@ function createBillboard(imageFileName, pos, scale, quat) {
  */
 function createRings() {
   const loader = new GLTFLoader().setPath("./models/");
-  loader.load("ring.glb", handleLoad, handleProgress);
+  loader.load("rings.glb", handleLoad, handleProgress);
 
   // Load completion
   function handleLoad(gltf) {
@@ -1083,32 +1283,76 @@ function createImages(filename) {
   // and a height that preserves the image's aspect ratio
   var geometry = new THREE.PlaneGeometry(10, 10 * 0.75);
 
-  // combine our image geometry and material into a mesh
   var mesh = new THREE.Mesh(geometry, material);
 
-  // set the position of the image mesh in the x,y,z dimensions
   mesh.position.set(-0.1, 2, 0);
   mesh.rotation.y = 0;
   mesh.scale.x = 1.15;
   mesh.scale.y = 0.93;
-  // add the image to the scene
+
   scene.add(mesh);
 
   return mesh;
 }
 
+function createResetAreaBowling(p1, p2, p3, p4) {
+  const material = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+  });
+  const points = [];
+  points.push(p1);
+  points.push(p2);
+  points.push(p3);
+  points.push(p4);
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  bowlingLine = new THREE.LineLoop(geometry, material);
+  scene.add(bowlingLine);
+}
+
+function createResetAreaGolf(p1, p2, p3, p4) {
+  const material = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+  });
+  const points = [];
+  points.push(p1);
+  points.push(p2);
+  points.push(p3);
+  points.push(p4);
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  golfballLine = new THREE.LineLoop(geometry, material);
+  scene.add(golfballLine);
+}
+
+function createLinks(p1, p2, p3, p4) {
+  const material = new THREE.LineBasicMaterial({
+    color: 0xffffff,
+  });
+  const points = [];
+  points.push(p1);
+  points.push(p2);
+  points.push(p3);
+  points.push(p4);
+
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  sortingVisulizerLine = new THREE.LineLoop(geometry, material);
+  scene.add(sortingVisulizerLine);
+}
+
 export {
   createObjects,
+  loadGLTFObjectSphereBowling,
+  loadGLTFObjectSphere,
   mixer,
   golfcartMixer,
   cube,
   plane,
-  groundPlane,
-  billboard,
   golfCart,
   rings,
-  trees,
-  rocks,
   cloud,
   airplaneControl,
+  bowlingLine,
+  golfballLine,
+  sortingVisulizerLine,
 };

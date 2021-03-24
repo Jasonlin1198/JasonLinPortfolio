@@ -4,21 +4,22 @@ import { BokehPass } from "./jsm/postprocessing/BokehPass.js";
 import { EffectComposer } from "./jsm/postprocessing/EffectComposer.js";
 import { GammaCorrectionShader } from "./jsm/shaders/GammaCorrectionShader.js";
 import { ShaderPass } from "./jsm/postprocessing/ShaderPass.js";
-
+import { Vector3, Vector4 } from "./build/three.module.js";
 import {
   createObjects,
+  loadGLTFObjectSphereBowling,
+  loadGLTFObjectSphere,
   mixer,
   golfcartMixer,
   cube,
   plane,
-  groundPlane,
-  billboard,
   golfCart,
   rings,
-  trees,
-  rocks,
   cloud,
   airplaneControl,
+  bowlingLine,
+  golfballLine,
+  sortingVisulizerLine,
 } from "./models.js";
 
 // Post-processing
@@ -115,6 +116,7 @@ function init() {
 
   // KeyPress Listener
   document.body.addEventListener("keydown", onKeyDown, false);
+  document.body.addEventListener("keyup", onKeyUp, false);
 
   // // Touch controls
   if (mobileVersion) {
@@ -425,9 +427,113 @@ function onKeyDown(event) {
     case 192: // Reset
       plane.position.set(0, 2, 5);
       break;
+    case 13:
+      if (
+        plane.position.x > -90 &&
+        plane.position.x < -70 &&
+        plane.position.z > -5 &&
+        plane.position.z < 5
+      ) {
+        bowlingLine.material = new THREE.LineBasicMaterial({
+          color: 0xffff00,
+        });
+        loadGLTFObjectSphereBowling(
+          "bowlingball.glb",
+          new Vector3(-80, 8, -10),
+          1.5,
+          new Vector4(0, -1, 0, 1)
+        );
+      } else if (
+        plane.position.x > 160 &&
+        plane.position.x < 170 &&
+        plane.position.z > -10 &&
+        plane.position.z < -5
+      ) {
+        golfballLine.material = new THREE.LineBasicMaterial({
+          color: 0xffff00,
+        });
+        loadGLTFObjectSphere(
+          "golfball.glb",
+          new Vector3(170, 3, -20),
+          0.75,
+          new Vector4(0, 0, 0, 1)
+        );
+      } else if (
+        plane.position.x > 80 &&
+        plane.position.x < 90 &&
+        plane.position.z > -40 &&
+        plane.position.z < -35
+      ) {
+        window.open("https://pacificresearchplatform.org/");
+      } else if (
+        plane.position.x > 110 &&
+        plane.position.x < 120 &&
+        plane.position.z > -40 &&
+        plane.position.z < -35
+      ) {
+        window.open("https://www.idtech.com/");
+      }else if (
+        plane.position.x > 140 &&
+        plane.position.x < 150 &&
+        plane.position.z > -40 &&
+        plane.position.z < -35
+      ) {
+        window.open("https://jasonlin1198.github.io/SortingVisualizer/");
+      }  
+      else if (
+        plane.position.x > 170 &&
+        plane.position.x < 180 &&
+        plane.position.z > -40 &&
+        plane.position.z < -35
+      ) {
+        window.open("https://www.upperlinecode.com/");
+      } else if (
+        plane.position.x > -10 &&
+        plane.position.x < -5 &&
+        plane.position.z > -145 &&
+        plane.position.z < -140
+      ) {
+        window.open("https://www.linkedin.com/in/jasonlin1198/");
+      } else if (
+        plane.position.x > -2.5 &&
+        plane.position.x < 2.5 &&
+        plane.position.z > -145 &&
+        plane.position.z < -140
+      ) {
+        window.open("https://github.com/Jasonlin1198");
+      } else if (
+        plane.position.x > 5 &&
+        plane.position.x < 10 &&
+        plane.position.z > -145 &&
+        plane.position.z < -140
+      ) {
+        window.open("mailto: jasonlin1198@gmail.com");
+      }
+      break;
   }
 }
-
+/**
+ * Handles key presses
+ * @param {*} event
+ */
+function onKeyUp(event) {
+  switch (event.keyCode) {
+    case 192: // Reset
+      plane.position.set(0, 2, 5);
+      break;
+    case 32:
+      bowlingLine.material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+      });
+      golfballLine.material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+      });
+      sortingVisulizerLine.material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+      });
+      break;
+  }
+}
 function updatePhysics(deltaTime) {
   // Step world
   physicsWorld.stepSimulation(deltaTime, 10);
@@ -475,6 +581,8 @@ function update(deltaTime) {
 function animate() {
   requestAnimationFrame(animate, renderer.domElement);
 
+  //checkLocation();
+
   // Updates animations per delta units
   var deltaTime = clock.getDelta();
 
@@ -484,9 +592,8 @@ function animate() {
   if (golfcartMixer && golfCart) {
     golfcartMixer.update(deltaTime);
     moveKinematic(golfCart);
-    //console.log(golfCart.position);
   }
-  
+
   if (!mobileVersion) {
     airplaneControl.update();
   }
@@ -498,6 +605,10 @@ function animate() {
   } else {
     renderer.render(scene, camera);
   }
+}
+
+function checkLocation() {
+  console.log(plane.position);
 }
 
 ////////////////////////////////
@@ -525,6 +636,25 @@ function moveKinematic(obj) {
     ms.setWorldTransform(tmpTrans);
   }
 }
+
+// function resetObject(obj) {
+//   obj.getWorldPosition(tmpPos);
+//   obj.getWorldQuaternion(tmpQuat);
+
+//   let physicsBody = obj.userData.physicsBody;
+
+//   let ms = physicsBody.getMotionState();
+//   if (ms) {
+//     ammoTmpPos.setValue(, tmpPos.y, tmpPos.z);
+//     ammoTmpQuat.setValue(tmpQuat.x, tmpQuat.y, tmpQuat.z, tmpQuat.w);
+
+//     tmpTrans.setIdentity();
+//     tmpTrans.setOrigin(ammoTmpPos);
+//     tmpTrans.setRotation(ammoTmpQuat);
+
+//     ms.setWorldTransform(tmpTrans);
+//   }
+// }
 
 export {
   animate,

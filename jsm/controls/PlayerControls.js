@@ -6,10 +6,10 @@ THREE.PlayerControls = function (player, domElement ) {
 
 	// API
 	this.center = new THREE.Vector3( player.position.x, player.position.y, player.position.z );
-	this.moveSpeed = 0.2;
+	this.moveSpeed = 0.3;
 	this.turnSpeed = 0.04;
 	this.tiltSpeed = 0.01;
-	this.maxSpeed = 0.6;
+	this.maxSpeed = 0.8;
 	this.defaultSpeed = 0.2;
 	var keyState = {};
 
